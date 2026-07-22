@@ -13,6 +13,7 @@ from app.rag.embedder import embedding_service
 from app.rag.vector_store import vector_store, IndexedChunk
 from app.core.config import settings
 from app.rag.reranker import reranker
+from sqlalchemy.orm import Session
 
 
 @dataclass
@@ -43,15 +44,45 @@ class RAGPipeline:
     def __init__(self):
         self.is_ready = False
 
-    async def initialize(self):
-        """Load existing FAISS index or prepare for fresh indexing."""
-        # Try to load existing index
+    async def initialize(self, db: Session):
+        """Load FAISS index or rebuild it from existing documents."""
+
         if vector_store.load():
             self.is_ready = True
-            logger.info(f"✅ RAG pipeline ready ({vector_store.total_chunks} chunks in index)")
-        else:
-            logger.info("No existing FAISS index found — will be created on first document upload")
-            self.is_ready = False
+            logger.info(
+                f"✅ RAG pipeline ready ({vector_store.total_chunks} chunks)"
+            )
+            return
+
+        logger.warning("No FAISS index found. Rebuilding from database...")
+
+        from app.models.document import Document
+
+        documents = (
+            db.query(Document)
+            .filter(Document.is_processed == True)
+            .all()
+        )
+
+        indexed = 0
+
+        for doc in documents:
+            try:
+                await self.index_document(
+                    file_path=doc.file_path,
+                    file_type=doc.file_type,
+                    doc_id=doc.id
+                )
+                indexed += 1
+
+            except Exception as e:
+                logger.error(f"Failed to index {doc.filename}: {e}")
+
+        self.is_ready = vector_store.total_chunks > 0
+
+        logger.info(
+            f"Indexed {indexed} documents ({vector_store.total_chunks} chunks)"
+        )
 
     async def index_document(self, file_path: str, file_type: str, doc_id: int = None) -> IndexResult:
         """

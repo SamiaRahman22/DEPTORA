@@ -197,6 +197,10 @@ class FAISSVectorStore:
             
             self._dimension = meta["dimension"]
             self._chunks = [IndexedChunk(**c) for c in meta["chunks"]]
+
+            # Rebuild BM25 index after loading metadata
+            self.rebuild_bm25_index()
+
             logger.info(f"✅ FAISS index loaded ({len(self._chunks)} chunks)")
             return True
         except Exception as e:
@@ -215,6 +219,20 @@ class FAISSVectorStore:
     @property
     def is_ready(self) -> bool:
         return self._index is not None and self._index.ntotal > 0
+    def remove_document(self, doc_id: int):
+        """Remove all chunks belonging to a document."""
 
+        self._chunks = [
+            c for c in self._chunks
+            if c.doc_id != doc_id
+        ]
+
+        if not self._chunks:
+            self.clear()
+        return
+
+    logger.warning(
+        "Document removal requires FAISS rebuild."
+    )
 
 vector_store = FAISSVectorStore()

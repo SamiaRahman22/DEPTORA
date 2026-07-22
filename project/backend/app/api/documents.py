@@ -38,7 +38,7 @@ def doc_to_dict(d: Document) -> dict:
         "chunk_count": d.chunk_count,
         "page_count": d.page_count,
         "error_message": d.error_message,
-        "uploaded_at": d.uploaded_at.isoformat() if d.uploaded_at else None,
+        "uploaded_date": d.uploaded_date.isoformat() if d.uploaded_date else None,
         "indexed_at": d.indexed_at.isoformat() if d.indexed_at else None,
         # NEW  - Versioning fields
         "doc_id": getattr(d, 'doc_id', None),
@@ -57,7 +57,7 @@ async def list_documents(
     # Show only active documents by default
     docs = db.query(Document).filter(
         Document.is_active == True
-    ).order_by(Document.uploaded_at.desc()).all()
+    ).order_by(Document.uploaded_date.desc()).all()
     return [doc_to_dict(d) for d in docs]
 
 

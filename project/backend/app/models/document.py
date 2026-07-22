@@ -1,7 +1,7 @@
 """Document database model for uploaded files."""
 
 
-from sqlalchemy import Column, String, DateTime, Boolean, Integer
+from sqlalchemy import Column, String, DateTime, Boolean, Integer, Text 
 from sqlalchemy.orm import declarative_base
 from datetime import datetime
 from app.core.database import Base

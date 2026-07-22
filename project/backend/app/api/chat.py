@@ -191,7 +191,7 @@ async def chat_message(
     status = "resolved" if full_context else "partial"
     background_tasks.add_task(
         _log_query, db, current_user.id, query, response_text,
-        True, domain_result.score, status, all_sources, session_id, response_ms
+        True, domain_result.confidence_score, status, all_sources, session_id, response_ms
     )
     # ── STEP 7.5: CACHE RESPONSE (NEW) ──
     cache_response = {

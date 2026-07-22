@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from loguru import logger
 
 from app.core.config import settings
-from app.core.database import create_tables
+from app.core.database import SessionLocal, create_tables
 from app.api import auth, chat, faqs, procedures, documents, admin
 from app.rag.pipeline import rag_pipeline
 
@@ -26,8 +26,12 @@ async def lifespan(app: FastAPI):
     
     # Initialize RAG pipeline
     try:
-        await rag_pipeline.initialize()
-        logger.info("✅ RAG pipeline initialized")
+        db = SessionLocal()
+        try:
+            await rag_pipeline.initialize(db)
+            logger.info("✅ RAG pipeline initialized")
+        finally:
+            db.close()
     except Exception as e:
         logger.warning(f"⚠️  RAG pipeline init warning: {e} — will retry on first use")
     

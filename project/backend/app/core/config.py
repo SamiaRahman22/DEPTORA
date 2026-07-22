@@ -21,6 +21,9 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_URL: str = "sqlite:///./deptai.db"
+    
+    # Redis
+    REDIS_URL: str = "redis://localhost:6379/0"
 
     # Ollama
     OLLAMA_BASE_URL: str = "http://localhost:11434"
