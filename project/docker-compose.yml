@@ -13,13 +13,16 @@ services:
       - ./backend:/app
       - deptai-data:/app/data
     environment:
-      - DATABASE_URL=sqlite:////app/data/deptai.db
-      - OLLAMA_BASE_URL=http://ollama:11434
-      - FAISS_INDEX_PATH=/app/data/faiss_index
-      - DOCUMENTS_PATH=/app/data/documents
-      - SECRET_KEY=${SECRET_KEY:-change-this-in-production}
+     - DATABASE_URL=sqlite:////app/data/deptai.db
+     - OLLAMA_BASE_URL=http://ollama:11434
+     - FAISS_INDEX_PATH=/app/data/faiss_index
+     - DOCUMENTS_PATH=/app/data/documents
+     - SECRET_KEY=${SECRET_KEY:-change-this-in-production}
+     - REDIS_URL=redis://redis:6379/0
+     - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
     depends_on:
-      - ollama
+     - ollama
+     - redis
     restart: unless-stopped
 
   # ── React Frontend ──

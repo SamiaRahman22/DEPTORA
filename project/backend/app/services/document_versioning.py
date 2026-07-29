@@ -23,11 +23,14 @@ class DocumentVersionService:
         uploaded_by: str = "admin",
         notes: str = "",
         valid_until: Optional[datetime] = None,
-    ) -> str:
+    ) -> Document:
         """
         Create a new document version.
-        
-        Returns: new version string (e.g., "2024.1")
+
+        Returns: the newly created Document row (already committed).
+        Callers that need to set additional fields (file_path, file_size, etc.)
+        should update this same object and commit again — do NOT create a
+        second Document row for the same upload.
         """
         # Find existing versions
         existing = db.query(Document).filter(
@@ -60,9 +63,10 @@ class DocumentVersionService:
         )
         db.add(doc)
         db.commit()
+        db.refresh(doc)
 
         logger.info(f"Created document version: {doc_id} v{new_version}")
-        return new_version
+        return doc
 
     def deactivate_version(self, db: Session, doc_id: str, version: str) -> bool:
         """Deactivate a specific version."""

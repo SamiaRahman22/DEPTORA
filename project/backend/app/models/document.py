@@ -19,8 +19,11 @@ class Document(Base):
     
     # Existing fields
     filename = Column(String(255), nullable=False)
+    original_filename = Column(String(255), nullable=True)  # name as uploaded by the user
+    file_size = Column(Integer, nullable=True)  # bytes
     file_type = Column(String(20))  # pdf, docx, txt
-    upload_date = Column(DateTime, default=datetime.utcnow)
+    uploaded_date = Column(DateTime, default=datetime.utcnow)
+    indexed_at = Column(DateTime, nullable=True)  # set once RAG indexing completes
     file_path = Column(String(500))
     chunk_count = Column(Integer, default=0, nullable=True)
     status = Column(String(20), default="uploaded")  # uploaded, processing, indexed, failed

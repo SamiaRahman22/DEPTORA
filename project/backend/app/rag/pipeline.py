@@ -60,7 +60,7 @@ class RAGPipeline:
 
         documents = (
             db.query(Document)
-            .filter(Document.is_processed == True)
+            .filter(Document.status == "indexed", Document.is_active == True)
             .all()
         )
 

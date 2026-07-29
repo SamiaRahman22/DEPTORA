@@ -219,20 +219,35 @@ class FAISSVectorStore:
     @property
     def is_ready(self) -> bool:
         return self._index is not None and self._index.ntotal > 0
+
     def remove_document(self, doc_id: int):
-        """Remove all chunks belonging to a document."""
+        """
+        Remove all chunks belonging to a document.
 
-        self._chunks = [
-            c for c in self._chunks
-            if c.doc_id != doc_id
-        ]
+        NOTE: This only removes chunk metadata (self._chunks). FAISS's flat
+        index does not support deleting individual vectors, so the underlying
+        index still contains the old vectors. If any chunks remain after
+        removal, self._chunks (used to map FAISS search results back to text)
+        will be out of sync with the index and searches will return wrong
+        results. A full reindex is required after a partial removal.
+        """
+        remaining = [c for c in self._chunks if c.doc_id != doc_id]
+        removed_count = len(self._chunks) - len(remaining)
 
-        if not self._chunks:
+        if not remaining:
+            # Nothing left at all — safe to fully reset.
+            self._chunks = []
             self.clear()
-        return
+            logger.info(f"Removed all chunks (doc_id={doc_id}); index cleared.")
+            return
 
-    logger.warning(
-        "Document removal requires FAISS rebuild."
-    )
+        if removed_count:
+            logger.warning(
+                f"Removed {removed_count} chunks for doc_id={doc_id} from metadata, "
+                "but the FAISS index still holds their vectors. A full reindex is "
+                "required to keep search results correct."
+            )
+        self._chunks = remaining
+
 
 vector_store = FAISSVectorStore()

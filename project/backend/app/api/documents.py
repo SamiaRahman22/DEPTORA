@@ -95,8 +95,9 @@ async def upload_document(
     doc_name = file.filename.rsplit('.', 1)[0] if '.' in file.filename else file.filename
     doc_id = doc_name.upper().replace(" ", "-")  # e.g., "CSE-Handbook"
     
-    # Create new version using versioning service
-    version = document_versioning.create_version(
+    # Create new version using versioning service — this inserts the ONE row
+    # for this upload; do not create a second Document row alongside it.
+    doc = document_versioning.create_version(
         db=db,
         doc_id=doc_id,
         filename=unique_name,
@@ -105,22 +106,12 @@ async def upload_document(
         uploaded_by=admin.email,  # Assumes admin has email field
         notes=f"Uploaded: {file.filename}",
     )
-    
-    # Create DB record with versioning
-    doc = Document(
-        filename=unique_name,
-        original_filename=file.filename,
-        file_type=ext,
-        file_size=len(content),
-        file_path=file_path,
-        status="uploaded",
-        uploaded_by=admin.id,
-        doc_id=doc_id,  # NEW
-        version=version,  # NEW
-        is_active=True,  # NEW
-        category="general",  # NEW
-    )
-    db.add(doc)
+
+    # Fill in the fields that create_version doesn't know about
+    doc.original_filename = file.filename
+    doc.file_size = len(content)
+    doc.file_path = file_path
+    doc.status = "uploaded"
     db.commit()
     db.refresh(doc)
 
@@ -239,7 +230,7 @@ async def _index_document(doc_id: int, file_path: str, file_type: str):
         doc.status = "processing"
         db.commit()
 
-        result = await rag_pipeline.index_document(file_path, file_type)
+        result = await rag_pipeline.index_document(file_path, file_type, doc_id=doc_id)
 
         doc.status = "indexed"
         doc.chunk_count = result.chunk_count
