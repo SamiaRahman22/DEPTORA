@@ -1,12 +1,20 @@
+# CPU-only PyTorch build — avoids ~2.5GB of unused NVIDIA CUDA packages
+# (this container has no GPU passthrough enabled; torch here is only used
+# by sentence-transformers for CPU embedding/reranking, not LLM inference —
+# Ollama handles that separately).
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
 python-multipart==0.0.6
 sqlalchemy==2.0.23
 alembic==1.12.1
 pydantic==2.5.0
 pydantic-settings==2.1.0
+email-validator==2.1.1
 python-dotenv==1.0.0
 redis==5.0.0    
 
@@ -18,7 +26,7 @@ python-docx==1.1.0
 beautifulsoup4==4.12.2
 requests==2.31.0
 numpy>=1.25.0,<2.0
-torch==2.1.0
+torch==2.1.0+cpu
 transformers==4.46.3
 rank-bm25==0.2.1
 

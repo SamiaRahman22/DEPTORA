@@ -124,7 +124,12 @@ deptai/
 
 ```bash
 # Install Ollama from https://ollama.ai
+cd project
+
 ollama pull llama3.2        # Recommended (2GB)
+
+ollama run llama3.2
+
 # OR for smaller/faster:
 ollama pull qwen2.5:3b      # 1.9GB
 ollama pull mistral          # 4.1GB
@@ -187,6 +192,15 @@ docker exec -it deptai-ollama ollama pull llama3.2
 
 # Seed the database
 docker exec -it deptai-backend python scripts/seed_db.py
+
+# To check caching mechanism, 
+docker exec -it project-redis-1 redis-cli
+
+# Inside redis-cli: 
+KEYS query:*
+
+# For cache-hit check: 
+docker-compose logs backend | Select-String "Cache HIT"
 ```
 
 ---
