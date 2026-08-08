@@ -21,6 +21,7 @@ from app.services.structured_retrieval import structured_retrieval
 from app.services.ollama_client import ollama_client
 from app.services.response_validator import response_validator
 from app.services.cache_service import cache_service
+from app.services import faq_promotion
 
 router = APIRouter()
 
@@ -39,6 +40,7 @@ class ChatResponse(BaseModel):
     response_time_ms: int
     session_id: str
     confidence_score: float = 0.5  # NEW
+    new_faq_added: bool = False  # NEW — true the exact moment this question crosses the auto-promotion threshold
 
 
 @router.post("/message", response_model=ChatResponse)
@@ -67,10 +69,21 @@ async def chat_message(
     cached_response = cache_service.get(query)
     if cached_response:
         response_ms = int((time.time() - start_time) * 1000)
+        cached_confidence = cached_response.get("confidence_score", 0.8)
+        try:
+            faq_just_added = faq_promotion.check_and_promote(
+                db, query, cached_response["response"], cached_confidence, True
+            )
+        except Exception as e:
+            logger.error(f"FAQ auto-promotion errored (non-fatal): {e}")
+            faq_just_added = False
         background_tasks.add_task(
             _log_query, db, current_user.id, query, cached_response["response"],
-            True, cached_response.get("confidence_score", 0.8), "resolved_cached",
-            cached_response.get("sources", []), session_id, response_ms
+            True, cached_confidence, "resolved_cached",
+            cached_response.get("sources", []), session_id, response_ms,
+            confidence_score=cached_confidence,
+            is_valid=cached_response.get("is_valid"),
+            unverified_claims_count=cached_response.get("unverified_claims_count"),
         )
         return ChatResponse(
             response=cached_response["response"],
@@ -79,7 +92,8 @@ async def chat_message(
             retrieval_method=cached_response.get("retrieval_method", "cache"),
             response_time_ms=response_ms,
             session_id=session_id,
-            confidence_score=cached_response.get("confidence_score", 0.8),
+            confidence_score=cached_confidence,
+            new_faq_added=faq_just_added,
         )
 
     # ── STEP 1: DOMAIN CHECK (Multi-layer with confidence) ──
@@ -99,7 +113,8 @@ async def chat_message(
         )
         background_tasks.add_task(
             _log_query, db, current_user.id, query, rejection_msg,
-            False, domain_result.confidence_score, "rejected", [], session_id, response_ms
+            False, domain_result.confidence_score, "rejected", [], session_id, response_ms,
+            confidence_score=0.0, is_valid=None, unverified_claims_count=None,
         )
         return ChatResponse(
             response=rejection_msg,
@@ -148,6 +163,7 @@ async def chat_message(
     full_context = "\n\n".join(context_parts) if context_parts else ""
 
     # ── STEP 6: LLM GENERATION ──
+    ollama_succeeded = False
     try:
         response_text = await ollama_client.generate(
             query=query,
@@ -155,6 +171,7 @@ async def chat_message(
             conversation_history=request.conversation_history or [],
             department=current_user.department,
         )
+        ollama_succeeded = True
         
         # ── STEP 6.5: RESPONSE VALIDATION (NEW) ──
         from app.services.response_validator import response_validator
@@ -164,15 +181,17 @@ async def chat_message(
             query=query
         )
         response_confidence = validation_result["confidence_score"]
+        response_is_valid = validation_result["is_valid"]
+        response_unverified_count = len(validation_result["unverified_claims"])
         
         # If confidence low, add disclaimer
         if response_confidence < 0.5:
             response_text += "\n\n⚠️ **Note:** This answer has limited source backing. For critical information, please verify with the department office."
         
-        logger.info(f"Response validation: confidence={response_confidence:.2f}, unverified={len(validation_result['unverified_claims'])}")
+        logger.info(f"Response validation: confidence={response_confidence:.2f}, unverified={response_unverified_count}")
         
     except Exception as e:
-        logger.error(f"Ollama generation failed: {e}")
+        logger.error(f"Ollama generation failed: {type(e).__name__}: {e}")
         if full_context:
             response_text = (
                 "Based on the department knowledge base:\n\n" + full_context[:1500]
@@ -184,24 +203,45 @@ async def chat_message(
                 "Please contact the department office directly for assistance."
             )
         response_confidence = 0.3
+        response_is_valid = None
+        response_unverified_count = None
 
     response_ms = int((time.time() - start_time) * 1000)
+
+    # ── STEP 6.6: FAQ AUTO-PROMOTION (synchronous — must happen before the
+    # response is returned, so the asking user sees it appear immediately) ──
+    try:
+        faq_just_added = faq_promotion.check_and_promote(
+            db, query, response_text, response_confidence, True
+        )
+    except Exception as e:
+        logger.error(f"FAQ auto-promotion errored (non-fatal): {e}")
+        faq_just_added = False
 
     # ── STEP 7: LOG IN BACKGROUND ──
     status = "resolved" if full_context else "partial"
     background_tasks.add_task(
         _log_query, db, current_user.id, query, response_text,
-        True, domain_result.confidence_score, status, all_sources, session_id, response_ms
+        True, domain_result.confidence_score, status, all_sources, session_id, response_ms,
+        confidence_score=response_confidence, is_valid=response_is_valid,
+        unverified_claims_count=response_unverified_count,
     )
     # ── STEP 7.5: CACHE RESPONSE (NEW) ──
-    cache_response = {
-        "response": response_text,
-        "is_in_domain": True,
-        "sources": all_sources,
-        "retrieval_method": retrieval_method,
-        "confidence_score": response_confidence,
-    }
-    background_tasks.add_task(cache_service.set, query, cache_response)
+    # Only cache real, successfully-generated answers. Caching the fallback
+    # (raw context dump, used when Ollama itself failed) would mean every
+    # future ask of this question gets stuck with that degraded answer for
+    # the full cache TTL, even after Ollama recovers.
+    if ollama_succeeded:
+        cache_response = {
+            "response": response_text,
+            "is_in_domain": True,
+            "sources": all_sources,
+            "retrieval_method": retrieval_method,
+            "confidence_score": response_confidence,
+            "is_valid": response_is_valid,
+            "unverified_claims_count": response_unverified_count,
+        }
+        background_tasks.add_task(cache_service.set, query, cache_response)
 
     return ChatResponse(
         response=response_text,
@@ -211,6 +251,7 @@ async def chat_message(
         response_time_ms=response_ms,
         session_id=session_id,
         confidence_score=max(response_confidence * domain_confidence, 0.1),  # NEW
+        new_faq_added=faq_just_added,
     )
 
 
@@ -242,7 +283,8 @@ async def get_chat_history(
 # ── BACKGROUND TASK ──
 def _log_query(
     db: Session, user_id, query, response, is_in_domain,
-    domain_score, status, sources, session_id, response_ms
+    domain_score, status, sources, session_id, response_ms,
+    confidence_score=None, is_valid=None, unverified_claims_count=None,
 ):
     try:
         log = QueryLog(
@@ -255,6 +297,9 @@ def _log_query(
             sources_used=sources,
             session_id=session_id,
             response_time_ms=response_ms,
+            confidence_score=confidence_score if confidence_score is not None else 0.5,
+            is_valid=is_valid,
+            unverified_claims_count=unverified_claims_count,
         )
         db.add(log)
         db.commit()

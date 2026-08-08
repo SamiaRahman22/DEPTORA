@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Bot, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Bot from '../../components/Bot';
 
 export default function StudentLogin() {
   const [email, setEmail] = useState('');
@@ -40,18 +41,18 @@ export default function StudentLogin() {
           style={{ background: '#8b5cf6', filter: 'blur(60px)', opacity: 0.15 }} />
 
         <Link to="/" className="flex items-center gap-2 relative z-10">
-          <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-            <Bot size={16} className="text-white" />
-          </div>
-          <span className="font-display font-bold text-white text-base">DeptAI</span>
+          <div className="w-16 h-16 flex items-center justify-center">
+              <Bot className="w-full h-full object-contain" />
+            </div>
+          <span className="font-display font-bold text-white text-base">DEPTORA</span>
         </Link>
 
         <div className="flex-1 flex flex-col justify-center relative z-10">
           <div className="glass rounded-xl p-5 mb-6">
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary-600/30 border border-primary-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Bot size={14} className="text-primary-400" />
-              </div>
+              <div className="w-16 h-16 flex items-center justify-center">
+              <Bot className="w-full h-full object-contain" />
+            </div>
               <div className="chat-bubble-ai !ml-0 !bg-transparent !border-0 !p-0">
                 Hello! I'm here to help with all your department questions — courses, procedures, deadlines, and more.
               </div>
@@ -81,10 +82,10 @@ export default function StudentLogin() {
         <div className="w-full max-w-[380px]" style={{ animation: 'slideUp 0.4s ease-out forwards' }}>
           {/* Mobile logo */}
           <Link to="/" className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <Bot size={16} className="text-white" />
+            <div className="w-16 h-16 flex items-center justify-center">
+              <Bot className="w-full h-full object-contain" />
             </div>
-            <span className="font-display font-bold text-white text-base">DeptAI</span>
+            <span className="font-display font-bold text-white text-base">DEPTORA</span>
           </Link>
 
           <div className="mb-8">

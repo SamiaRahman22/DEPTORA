@@ -1,7 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Bot, FileQuestion, ClipboardList, BarChart2, ArrowRight,
+  FileQuestion, ClipboardList, BarChart2, ArrowRight,
 } from 'lucide-react';
+import Bot from '../../components/Bot';
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -10,8 +11,8 @@ const FEATURES = [
     icon: Bot,
     title: 'AI-Powered Answers',
     desc: 'Our chatbot understands natural language and retrieves precise answers instantly.',
-    bg: 'rgba(79,70,229,0.12)',
-    iconColor: '#818cf8',
+    bg: 'rgba(16,185,129,0.12)',
+    iconColor: '#a78bfa',
   },
   {
     icon: FileQuestion,
@@ -69,12 +70,12 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
 
           {/* Brand */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-primary-600 flex items-center justify-center">
-              <Bot size={16} className="text-white" />
+          <div className="flex items-center gap-2">
+            <div className="w-16 h-16 flex items-center justify-center">
+              <Bot className="w-full h-full object-contain" />
             </div>
             <span className="font-display font-bold text-white text-[15px] tracking-tight">
-              DeptAssist
+              DEPTORA
             </span>
           </div>
 

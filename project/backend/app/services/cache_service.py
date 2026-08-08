@@ -61,13 +61,41 @@ class CacheService:
             if cached:
                 result = json.loads(cached)
                 logger.debug(f"Cache HIT for: {query[:50]}...")
+                self._record(hit=True)
                 return result
             else:
                 logger.debug(f"Cache MISS for: {query[:50]}...")
+                self._record(hit=False)
                 return None
         except Exception as e:
             logger.warning(f"Cache GET failed: {e}")
             return None
+
+    def _record(self, hit: bool) -> None:
+        """Increment persistent hit/miss counters in Redis (survives restarts)."""
+        try:
+            self._redis.incr("stats:cache_hits" if hit else "stats:cache_misses")
+        except Exception as e:
+            logger.warning(f"Cache stats increment failed: {e}")
+
+    def get_stats(self) -> Dict:
+        """Return cumulative cache hit/miss counts and hit rate."""
+        if not self.enabled:
+            return {"enabled": False, "hits": 0, "misses": 0, "total": 0, "hit_rate": 0.0}
+        try:
+            hits = int(self._redis.get("stats:cache_hits") or 0)
+            misses = int(self._redis.get("stats:cache_misses") or 0)
+            total = hits + misses
+            return {
+                "enabled": True,
+                "hits": hits,
+                "misses": misses,
+                "total": total,
+                "hit_rate": round(hits / total * 100, 1) if total else 0.0,
+            }
+        except Exception as e:
+            logger.warning(f"Cache stats fetch failed: {e}")
+            return {"enabled": True, "hits": 0, "misses": 0, "total": 0, "hit_rate": 0.0}
 
     def set(self, query: str, response: Dict) -> bool:
         """Store response in cache."""

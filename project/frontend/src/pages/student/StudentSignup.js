@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Bot, Mail, Lock, Eye, EyeOff, User, Hash, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, Hash, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Bot from '../../components/Bot';
 
 const PasswordStrength = ({ password }) => {
   const checks = [
@@ -57,10 +58,10 @@ export default function StudentSignup() {
         <div className="orb top-[-80px] right-[-80px] w-[300px] h-[300px] rounded-full"
           style={{ background: '#8b5cf6', filter: 'blur(80px)', opacity: 0.15 }} />
         <Link to="/" className="flex items-center gap-2 relative z-10">
-          <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-            <Bot size={16} className="text-white" />
-          </div>
-          <span className="font-display font-bold text-white text-base">DeptAI</span>
+          <div className="w-16 h-16 flex items-center justify-center">
+              <Bot className="w-full h-full object-contain" />
+            </div>
+          <span className="font-display font-bold text-white text-base">DEPTORA</span>
         </Link>
         <div className="flex-1 flex flex-col justify-center relative z-10">
           <h2 className="font-display font-bold text-2xl text-white mb-4">Join your department's AI network</h2>
@@ -93,7 +94,7 @@ export default function StudentSignup() {
             <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
               <Bot size={16} className="text-white" />
             </div>
-            <span className="font-display font-bold text-white text-base">DeptAI</span>
+            <span className="font-display font-bold text-white text-base">DEPTORA</span>
           </Link>
 
           <div className="mb-7">

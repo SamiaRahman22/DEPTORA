@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Shield, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, Bot } from 'lucide-react';
+import { Shield, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Bot from '../../components/Bot';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -39,10 +40,10 @@ export default function AdminLogin() {
 
       <div className="w-full max-w-[380px] relative z-10" style={{ animation: 'slideUp 0.4s ease-out forwards' }}>
         <Link to="/" className="flex items-center gap-2 mb-8 justify-center">
-          <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-            <Bot size={16} className="text-white" />
+          <div className="w-16 h-16 flex items-center justify-center">
+            <Bot className="w-full h-full object-contain" />
           </div>
-          <span className="font-display font-bold text-white text-base">DeptAI</span>
+          <span className="font-display font-bold text-white text-base">DEPTORA</span>
         </Link>
 
         <div className="card border-white/10">

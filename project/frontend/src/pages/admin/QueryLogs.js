@@ -43,6 +43,15 @@ export default function QueryLogs() {
 
   useEffect(() => { loadLogs(); }, [loadLogs]);
 
+  const rateLog = async (id, rating) => {
+    try {
+      await adminAPI.rateLog(id, rating);
+      setData(d => ({ ...d, logs: d.logs.map(l => l.id === id ? { ...l, admin_rating: rating } : l) }));
+      setSelected(s => s?.id === id ? { ...s, admin_rating: rating } : s);
+      toast.success(`Marked ${rating}`);
+    } catch { toast.error('Failed to save rating'); }
+  };
+
   // Summary stats from current data
   const resolved = data.logs.filter(l => l.status === 'resolved').length;
   const rejected = data.logs.filter(l => !l.is_in_domain).length;
@@ -146,6 +155,26 @@ export default function QueryLogs() {
                         {log.response && <div><span className="text-gray-500">Response: </span><span className="text-gray-400">{log.response}</span></div>}
                         {log.sources_used?.length > 0 && <div><span className="text-gray-500">Sources: </span><span className="text-gray-400 font-mono">{log.sources_used.join(', ')}</span></div>}
                         <div><span className="text-gray-500">Domain score: </span><span className="text-gray-400 font-mono">{log.domain_score?.toFixed(3) ?? '—'}</span></div>
+                        <div><span className="text-gray-500">Validation confidence: </span><span className="text-gray-400 font-mono">{log.confidence_score?.toFixed(3) ?? '—'}</span></div>
+                        {log.is_valid === false && (
+                          <div className="text-rose-400">Flagged by response validator — {log.unverified_claims_count ?? '?'} unverified claim(s)</div>
+                        )}
+                        {log.status === 'resolved' && (
+                          <div className="flex items-center gap-2 pt-1" onClick={e => e.stopPropagation()}>
+                            <span className="text-gray-500">Grade this answer:</span>
+                            {['correct', 'partial', 'incorrect'].map(r => (
+                              <button key={r} onClick={() => rateLog(log.id, r)}
+                                className={`px-2 py-1 rounded text-xs font-display font-medium transition-colors border
+                                  ${log.admin_rating === r
+                                    ? r === 'correct' ? 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30'
+                                    : r === 'partial' ? 'bg-amber-600/20 text-amber-400 border-amber-500/30'
+                                    : 'bg-rose-600/20 text-rose-400 border-rose-500/30'
+                                    : 'text-gray-500 border-transparent hover:bg-white/5'}`}>
+                                {r}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </td>
                   </tr>

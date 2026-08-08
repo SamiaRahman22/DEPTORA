@@ -48,6 +48,18 @@ class Settings(BaseSettings):
     DOMAIN_KEYWORDS: str = "course,curriculum,exam,assignment,thesis,attendance,faculty,professor,department,grade,cgpa,credit,semester,scholarship,transcript,fee,lab,research,procedure,deadline,notice,admission,internship,lecture,supervisor,class,schedule"
     DOMAIN_THRESHOLD: float = 0.35
 
+    # FAQ auto-promotion — a recurring question (paraphrases count as the same
+    # question, matched by embedding similarity) gets automatically added to
+    # FAQs once asked this many times with sufficiently confident answers.
+    FAQ_AUTO_PROMOTE_THRESHOLD: int = 5
+    FAQ_AUTO_PROMOTE_MIN_CONFIDENCE: float = 0.5
+    # Cosine similarity (0-1) above which two questions count as "the same
+    # question, just reworded". Embeddings are L2-normalized, so cosine
+    # similarity == dot product. 0.82 is a reasonably strict paraphrase bar —
+    # raise it if unrelated questions start merging, lower it if obvious
+    # paraphrases aren't being recognized as the same question.
+    FAQ_SIMILARITY_THRESHOLD: float = 0.82
+
     @property
     def domain_keywords_list(self) -> List[str]:
         return [k.strip() for k in self.DOMAIN_KEYWORDS.split(",")]

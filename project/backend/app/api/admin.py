@@ -1,5 +1,7 @@
 """Admin-only endpoints: dashboard stats, query logs, user management."""
 
+import os
+import json
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
@@ -13,8 +15,32 @@ from app.models.query_log import QueryLog
 from app.models.faq import FAQ
 from app.models.document import Document
 from app.models.procedure import Procedure
+from app.services.cache_service import cache_service
 
 router = APIRouter()
+
+EVAL_RESULTS_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "data", "eval_results.json"
+)
+ANSWER_QUALITY_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "data", "answer_quality_results.json"
+)
+LOAD_TEST_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "data", "load_test_results.json"
+)
+
+
+def _load_json_if_exists(path):
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except Exception:
+        return None
 
 
 @router.get("/dashboard")
@@ -72,6 +98,191 @@ async def dashboard_stats(
     }
 
 
+@router.get("/performance")
+async def performance_stats(
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin),
+):
+    """
+    Real, measured system performance — no placeholder numbers.
+
+    Combines two sources:
+    - Live aggregates computed on-demand from the database (always current)
+    - The last offline run of scripts/evaluate_system.py (domain-restriction
+      accuracy against a labeled test set, and retrieval latency), which is
+      loaded from data/eval_results.json if it exists.
+    """
+    now = datetime.utcnow()
+    thirty_days_ago = now - timedelta(days=30)
+
+    logs = db.query(QueryLog).filter(QueryLog.created_at >= thirty_days_ago).all()
+    total_logs = len(logs)
+
+    response_times = [l.response_time_ms for l in logs if l.response_time_ms is not None]
+    confidences = [l.confidence_score for l in logs if l.confidence_score is not None]
+    method_counts = {}
+    for l in logs:
+        m = l.retrieval_method or "unknown"
+        method_counts[m] = method_counts.get(m, 0) + 1
+
+    response_time_stats = None
+    if response_times:
+        response_times.sort()
+        n = len(response_times)
+        response_time_stats = {
+            "avg_ms": round(sum(response_times) / n, 1),
+            "p50_ms": response_times[n // 2],
+            "p95_ms": response_times[min(n - 1, int(n * 0.95))],
+            "min_ms": response_times[0],
+            "max_ms": response_times[-1],
+            "sample_size": n,
+        }
+
+    docs = db.query(Document).all()
+    doc_total = len(docs)
+    doc_indexed = sum(1 for d in docs if d.status == "indexed")
+    doc_failed = sum(1 for d in docs if d.status == "failed")
+
+    # ── Response validation / hallucination rate (from persisted validator output) ──
+    validity_flags = [l.is_valid for l in logs if l.is_valid is not None]
+    unverified_counts = [l.unverified_claims_count for l in logs if l.unverified_claims_count is not None]
+    hallucination_stats = None
+    if validity_flags:
+        flagged = sum(1 for v in validity_flags if v is False)
+        hallucination_stats = {
+            "sample_size": len(validity_flags),
+            "flagged_as_hallucinated": flagged,
+            "hallucination_rate": round(flagged / len(validity_flags) * 100, 1),
+            "faithfulness_rate": round((len(validity_flags) - flagged) / len(validity_flags) * 100, 1),
+            "avg_unverified_claims": round(sum(unverified_counts) / len(unverified_counts), 2) if unverified_counts else None,
+        }
+
+    # ── Human-graded answer accuracy (admin_rating set from the Query Logs panel) ──
+    rated = [l.admin_rating for l in logs if l.admin_rating]
+    answer_accuracy_stats = None
+    if rated:
+        correct = rated.count("correct")
+        partial = rated.count("partial")
+        incorrect = rated.count("incorrect")
+        answer_accuracy_stats = {
+            "reviewed_count": len(rated),
+            "correct": correct,
+            "partial": partial,
+            "incorrect": incorrect,
+            "accuracy_rate": round(correct / len(rated) * 100, 1),
+            "accuracy_rate_incl_partial": round((correct + 0.5 * partial) / len(rated) * 100, 1),
+        }
+
+    # ── System reliability: error rate, throughput ──
+    failed = sum(1 for l in logs if l.status == "failed")
+    error_rate = round(failed / total_logs * 100, 1) if total_logs else None
+    oldest = min((l.created_at for l in logs), default=None)
+    newest = max((l.created_at for l in logs), default=None)
+    throughput_per_hour = None
+    if oldest and newest and total_logs:
+        span_hours = max((newest - oldest).total_seconds() / 3600, 1 / 60)  # avoid div-by-zero on a single-minute burst
+        throughput_per_hour = round(total_logs / span_hours, 2)
+
+    # ── Cache effectiveness: time saved (avg cached vs avg non-cached response time) ──
+    cache_stats = cache_service.get_stats()
+    cached_times = [l.response_time_ms for l in logs if l.status == "resolved_cached" and l.response_time_ms is not None]
+    noncached_times = [l.response_time_ms for l in logs if l.status != "resolved_cached" and l.response_time_ms is not None]
+    if cached_times and noncached_times:
+        avg_cached = sum(cached_times) / len(cached_times)
+        avg_noncached = sum(noncached_times) / len(noncached_times)
+        cache_stats["avg_cached_response_ms"] = round(avg_cached, 1)
+        cache_stats["avg_noncached_response_ms"] = round(avg_noncached, 1)
+        cache_stats["est_ms_saved_per_hit"] = round(max(avg_noncached - avg_cached, 0), 1)
+
+    live_stats = {
+        "response_time": response_time_stats,
+        "avg_confidence_score": round(sum(confidences) / len(confidences), 3) if confidences else None,
+        "low_confidence_response_count": sum(1 for c in confidences if c < 0.5) if confidences else 0,
+        "retrieval_method_breakdown": method_counts,
+        "domain_rejection_rate": round(
+            sum(1 for l in logs if l.is_in_domain is False) / total_logs * 100, 1
+        ) if total_logs else None,
+        "total_queries_30d": total_logs,
+        "throughput_per_hour": throughput_per_hour,
+        "error_rate": error_rate,
+        "hallucination": hallucination_stats,
+        "answer_accuracy": answer_accuracy_stats,
+        "document_indexing": {
+            "total_uploaded": doc_total,
+            "indexed": doc_indexed,
+            "failed": doc_failed,
+            "extraction_success_rate": round(doc_indexed / doc_total * 100, 1) if doc_total else None,
+        },
+        "cache": cache_stats,
+    }
+
+    eval_results = None
+    eval_generated_at = None
+    if os.path.exists(EVAL_RESULTS_PATH):
+        try:
+            with open(EVAL_RESULTS_PATH) as f:
+                raw = json.load(f)
+            eval_generated_at = raw.get("generated_at")
+            eval_results = {
+                "domain_restriction": raw.get("domain_restriction"),
+                "retrieval_latency": raw.get("retrieval_latency"),
+                "retrieval_quality": raw.get("retrieval_quality"),
+                "retrieval_baseline_comparison": raw.get("retrieval_baseline_comparison"),
+            }
+        except Exception:
+            eval_results = None
+
+    answer_quality = _load_json_if_exists(ANSWER_QUALITY_PATH)
+    load_test = _load_json_if_exists(LOAD_TEST_PATH)
+
+    return {
+        "live": live_stats,
+        "offline_evaluation": eval_results,
+        "offline_evaluation_generated_at": eval_generated_at,
+        "offline_evaluation_note": (
+            None if eval_results else
+            "No evaluation run yet. Run `python scripts/evaluate_system.py` on the "
+            "backend to measure domain-restriction accuracy, retrieval quality, and retrieval latency."
+        ),
+        "answer_quality": answer_quality.get("summary") if answer_quality else None,
+        "answer_quality_generated_at": answer_quality.get("generated_at") if answer_quality else None,
+        "answer_quality_note": (
+            None if answer_quality else
+            "No answer-quality run yet. Run `python scripts/evaluate_answer_quality.py` "
+            "(server must be running) to score generated answers against FAQ reference answers."
+        ),
+        "scalability": load_test.get("levels") if load_test else None,
+        "scalability_generated_at": load_test.get("generated_at") if load_test else None,
+        "scalability_note": (
+            None if load_test else
+            "No load test run yet. Run `python scripts/load_test.py` "
+            "(server must be running) to measure response time and success rate at increasing concurrency."
+        ),
+    }
+
+
+@router.patch("/logs/{log_id}/rate")
+async def rate_query_log(
+    log_id: int,
+    rating: str = Query(..., pattern="^(correct|partial|incorrect)$"),
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin),
+):
+    """
+    Human-graded answer accuracy. The system can't judge whether an answer is
+    factually correct on its own — an admin marks resolved queries as
+    correct/partial/incorrect from the Query Logs panel, and /performance
+    aggregates these into a real, defensible "Answer Accuracy" figure.
+    """
+    from fastapi import HTTPException
+    log = db.query(QueryLog).filter(QueryLog.id == log_id).first()
+    if not log:
+        raise HTTPException(status_code=404, detail="Query log not found")
+    log.admin_rating = rating
+    db.commit()
+    return {"id": log.id, "admin_rating": log.admin_rating}
+
+
 @router.get("/logs")
 async def query_logs(
     page: int = 1,
@@ -111,6 +322,10 @@ async def query_logs(
                 "sources_used": l.sources_used,
                 "response_time_ms": l.response_time_ms,
                 "status": l.status,
+                "confidence_score": l.confidence_score,
+                "is_valid": l.is_valid,
+                "unverified_claims_count": l.unverified_claims_count,
+                "admin_rating": l.admin_rating,
                 "created_at": l.created_at.isoformat(),
             }
             for l in logs

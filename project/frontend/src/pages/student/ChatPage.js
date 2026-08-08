@@ -1,13 +1,14 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { chatAPI } from '../../utils/api';
+import { chatAPI, faqAPI } from '../../utils/api';
 import {
-  Bot, Send, LogOut, User, BookOpen, FileText, HelpCircle,
+  Send, LogOut, User, BookOpen, FileText, HelpCircle,
   Paperclip, RotateCcw, ThumbsUp, ThumbsDown, Copy,
   Sparkles, ChevronDown, AlertTriangle, Wifi, WifiOff
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Bot from '../../components/Bot';
 
 const SAMPLE_QUESTIONS = [
   'What are the thesis submission deadlines?',
@@ -112,6 +113,7 @@ export default function ChatPage() {
   const [showSidebar, setShowSidebar] = useState(true);
   const [sessionId] = useState(() => crypto.randomUUID());
   const [apiOnline, setApiOnline] = useState(true);
+  const [liveFaqs, setLiveFaqs] = useState([]);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -124,6 +126,25 @@ export default function ChatPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
+
+  // Live FAQs — auto-promoted questions show up here without a page reload.
+  const fetchFaqs = useCallback(async () => {
+    try {
+      const data = await faqAPI.list(null, true); // active_only
+      const sorted = [...data].sort(
+        (a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)
+      );
+      setLiveFaqs(sorted.slice(0, 8));
+    } catch {
+      // Silently skip — not critical to chat functioning, don't toast/interrupt.
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchFaqs();
+    const interval = setInterval(fetchFaqs, 15000);
+    return () => clearInterval(interval);
+  }, [fetchFaqs]);
 
   const sendMessage = useCallback(async (text) => {
     const msg = (text || input).trim();
@@ -146,6 +167,12 @@ export default function ChatPage() {
         response_time_ms: result.response_time_ms,
         is_in_domain: result.is_in_domain,
       }]);
+      // Promotion now happens synchronously server-side, before this response
+      // is even sent — so if new_faq_added is true, the FAQ is already
+      // committed to the DB right now. Refresh immediately, no delay needed.
+      if (result.new_faq_added) {
+        fetchFaqs();
+      }
     } catch (err) {
       setApiOnline(false);
       const errMsg = err.response?.data?.detail || 'Failed to reach the backend. Is FastAPI running?';
@@ -159,7 +186,7 @@ export default function ChatPage() {
     } finally {
       setLoading(false);
     }
-  }, [input, loading, sessionId, conversationHistory]);
+  }, [input, loading, sessionId, conversationHistory, fetchFaqs]);
 
   const handleKey = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
@@ -181,9 +208,11 @@ export default function ChatPage() {
       <aside className={`${showSidebar ? 'w-64' : 'w-0'} transition-all duration-300 bg-surface-1 border-r border-white/8 flex flex-col overflow-hidden flex-shrink-0`}>
         <div className="p-4 border-b border-white/8">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center"><Bot size={16} className="text-white" /></div>
+            <div className="w-16 h-16 flex items-center justify-center">
+              <Bot className="w-full h-full object-contain" />
+            </div>
             <div>
-              <p className="font-display font-bold text-white text-sm">DeptAI</p>
+              <p className="font-display font-bold text-white text-sm">DEPTORA</p>
               <p className="text-gray-600 text-xs font-mono">RAG + Ollama</p>
             </div>
           </div>
@@ -194,18 +223,33 @@ export default function ChatPage() {
             className="w-full mb-4 py-2 px-3 rounded-lg bg-primary-600/20 border border-primary-500/30 hover:bg-primary-600/30 text-primary-400 text-xs font-display font-medium transition-colors flex items-center gap-2">
             <Sparkles size={12} /> New Chat
           </button>
-          <p className="text-gray-600 text-xs font-display font-semibold uppercase tracking-wider px-2 mb-2">Quick Questions</p>
-          <div className="space-y-0.5">
-            {SAMPLE_QUESTIONS.map((q, i) => (
-              <button key={i} onClick={() => sendMessage(q)}
-                className="w-full text-left px-3 py-2 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-white/5 text-xs font-body transition-colors leading-snug">
-                {q}
+          <div className="flex items-center gap-1.5 px-2 mb-2">
+            <p className="text-gray-600 text-xs font-display font-semibold uppercase tracking-wider">Quick Questions</p>
+            {liveFaqs.length > 0 && (
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" title="Live — updates automatically" />
+            )}
+          </div>
+          <div className="space-y-0.5 max-h-72 overflow-y-auto">
+            {liveFaqs.map((faq) => (
+              <button key={`faq-${faq.id}`} onClick={() => sendMessage(faq.question)}
+                className="w-full text-left px-3 py-2 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-white/5 text-xs font-body transition-colors leading-snug flex items-start gap-1.5">
+                <HelpCircle size={11} className="text-primary-500/60 mt-0.5 flex-shrink-0" />
+                <span>{faq.question}</span>
               </button>
             ))}
+            {SAMPLE_QUESTIONS
+              .filter((q) => !liveFaqs.some((f) => f.question.toLowerCase() === q.toLowerCase()))
+              .slice(0, Math.max(0, 6 - liveFaqs.length))
+              .map((q, i) => (
+                <button key={`sample-${i}`} onClick={() => sendMessage(q)}
+                  className="w-full text-left px-3 py-2 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-white/5 text-xs font-body transition-colors leading-snug">
+                  {q}
+                </button>
+              ))}
           </div>
           <div className="mt-4 pt-4 border-t border-white/8">
             <p className="text-gray-600 text-xs font-display font-semibold uppercase tracking-wider px-2 mb-1">Resources</p>
-            {[{ icon: HelpCircle, label: 'FAQs' }, { icon: BookOpen, label: 'Procedures' }, { icon: FileText, label: 'Documents' }].map(({ icon: Icon, label }) => (
+            {[{ icon: BookOpen, label: 'Procedures' }, { icon: FileText, label: 'Documents' }].map(({ icon: Icon, label }) => (
               <button key={label} className="sidebar-link w-full text-left"><Icon size={14} /> {label}</button>
             ))}
           </div>

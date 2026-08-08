@@ -35,3 +35,11 @@ class QueryLog(Base):
 
     # Response confidence
     confidence_score: float = Column(Float, default=0.5)  # NEW
+
+    # Response validation (hallucination detection) — persisted so it can be aggregated
+    is_valid = Column(Boolean, nullable=True)  # response_validator.validate_response()["is_valid"]
+    unverified_claims_count = Column(Integer, nullable=True)
+
+    # Human-graded answer accuracy, set by an admin from the Query Logs panel.
+    # One of: "correct", "partial", "incorrect", or null (not yet reviewed).
+    admin_rating = Column(String(20), nullable=True)

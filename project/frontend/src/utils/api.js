@@ -123,10 +123,12 @@ export const documentAPI = {
 // ══════════════════════════════════════════════
 export const adminAPI = {
   dashboard: () => api.get('/admin/dashboard').then(r => r.data),
+  performance: () => api.get('/admin/performance').then(r => r.data),
   logs: (params = {}) => {
     const qs = new URLSearchParams(params).toString();
     return api.get(`/admin/logs?${qs}`).then(r => r.data);
   },
+  rateLog: (id, rating) => api.patch(`/admin/logs/${id}/rate?rating=${rating}`).then(r => r.data),
   users: () => api.get('/admin/users').then(r => r.data),
   toggleUser: (id) => api.post(`/admin/users/${id}/toggle`).then(r => r.data),
   seed: () => api.post('/admin/seed').then(r => r.data),

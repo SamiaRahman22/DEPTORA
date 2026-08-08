@@ -41,14 +41,19 @@ const RAGBar = ({ label, value, color }) => (
 
 export default function AdminDashboard() {
   const [data, setData] = useState(null);
+  const [perf, setPerf] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const loadDashboard = async () => {
     try {
       setLoading(true);
-      const result = await adminAPI.dashboard();
+      const [result, perfResult] = await Promise.all([
+        adminAPI.dashboard(),
+        adminAPI.performance().catch(() => null),
+      ]);
       setData(result);
+      setPerf(perfResult);
       setError(null);
     } catch (err) {
       setError('Failed to load dashboard. Is the backend running?');
@@ -60,6 +65,7 @@ export default function AdminDashboard() {
   useEffect(() => { loadDashboard(); }, []);
 
   const stats = data?.stats;
+  const live = perf?.live;
 
   return (
     <AdminLayout title="Dashboard" subtitle="System overview">
@@ -126,17 +132,64 @@ export default function AdminDashboard() {
             </div>
 
             <div className="space-y-4">
-              {/* RAG status */}
+              {/* Real system performance — measured, not simulated */}
               <div className="card">
-                <h2 className="font-display font-semibold text-white text-sm mb-4">RAG Pipeline Status</h2>
-                <RAGBar label="FAISS Index Coverage" value="94%" color="#6366f1" />
-                <RAGBar label="Embedding Model Load" value="67%" color="#10b981" />
-                <RAGBar label="Ollama GPU Utilization" value="38%" color="#f59e0b" />
-                <RAGBar label="Domain Filter Accuracy" value="98%" color="#8b5cf6" />
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-display font-semibold text-white text-sm">System Performance</h2>
+                  {perf?.offline_evaluation_generated_at && (
+                    <span className="text-xs text-gray-600 font-mono">
+                      eval: {new Date(perf.offline_evaluation_generated_at).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+
+                {perf?.offline_evaluation?.domain_restriction ? (
+                  <RAGBar
+                    label="Domain Restriction Accuracy (labeled test set)"
+                    value={`${perf.offline_evaluation.domain_restriction.accuracy}%`}
+                    color="#8b5cf6"
+                  />
+                ) : (
+                  <p className="text-xs text-gray-600 font-body mb-3">
+                    Domain accuracy: not yet measured — run <code>evaluate_system.py</code>.
+                  </p>
+                )}
+
+                {live?.document_indexing?.extraction_success_rate != null && (
+                  <RAGBar
+                    label="Document Extraction Success Rate"
+                    value={`${live.document_indexing.extraction_success_rate}%`}
+                    color="#10b981"
+                  />
+                )}
+
+                {live?.cache?.enabled && (
+                  <RAGBar
+                    label={`Cache Hit Rate (${live.cache.total} lookups)`}
+                    value={`${live.cache.hit_rate}%`}
+                    color="#f59e0b"
+                  />
+                )}
+
+                {live?.avg_confidence_score != null && (
+                  <RAGBar
+                    label="Avg Response Validation Confidence"
+                    value={`${Math.round(live.avg_confidence_score * 100)}%`}
+                    color="#6366f1"
+                  />
+                )}
+
                 <div className="mt-3 flex items-center gap-2 text-xs text-gray-600 font-mono">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  all-MiniLM-L6-v2 · {stats?.avg_response_ms ?? '—'}ms avg
+                  {live?.response_time?.avg_ms != null
+                    ? `${live.response_time.avg_ms}ms avg response (p95: ${live.response_time.p95_ms}ms, n=${live.response_time.sample_size})`
+                    : `${stats?.avg_response_ms ?? '—'}ms avg response`}
                 </div>
+                {!perf?.offline_evaluation && (
+                  <p className="text-xs text-gray-600 font-body mt-2">
+                    {perf?.offline_evaluation_note}
+                  </p>
+                )}
               </div>
 
               {/* Quick actions */}
