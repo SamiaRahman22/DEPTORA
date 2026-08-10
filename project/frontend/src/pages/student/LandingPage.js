@@ -100,7 +100,7 @@ export default function LandingPage() {
             >
               Admin
             </Link>
-            <Link to="/login" className="btn-ghost text-sm py-2 px-4">
+            <Link to="/login" className="btn-primary text-sm py-2 px-4">
               Sign in
             </Link>
             <Link to="/signup" className="btn-primary text-sm py-2 px-5">
@@ -141,7 +141,7 @@ export default function LandingPage() {
           <Link to="/signup" className="btn-primary px-8 py-3 text-base">
             Start Chatting <ArrowRight size={16} />
           </Link>
-          <Link to="/login" className="btn-ghost px-8 py-3 text-base">
+          <Link to="/login" className="btn-primary px-8 py-3 text-base">
             I have an account
           </Link>
         </div>
@@ -176,7 +176,7 @@ export default function LandingPage() {
           <h2 className="font-display font-bold text-3xl text-white mb-3">
             Built for Academic Departments
           </h2>
-          <p className="font-body text-gray-500">
+          <p className="font-body text-gray-400">
             A purpose-built system — not a generic chatbot
           </p>
         </div>
@@ -187,7 +187,7 @@ export default function LandingPage() {
             return (
               <div
                 key={f.title}
-                className="card group hover:border-primary-500/30 transition-all duration-300 cursor-default flex gap-4 items-start"
+                className="card bg-black border border-white/10 group hover:border-primary-500/40 transition-all duration-300 cursor-default flex gap-4 items-start"
               >
                 <div
                   className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -199,7 +199,7 @@ export default function LandingPage() {
                   <h3 className="font-display font-semibold text-white text-[15px] mb-1.5">
                     {f.title}
                   </h3>
-                  <p className="font-body text-sm text-gray-500 leading-relaxed">
+                  <p className="font-body text-sm text-gray-400 leading-relaxed">
                     {f.desc}
                   </p>
                 </div>
@@ -211,11 +211,11 @@ export default function LandingPage() {
 
       {/* ── How it works ── */}
       <section id="how-it-works" className="max-w-6xl mx-auto px-6 pb-20">
-        <div className="glass-dark rounded-2xl p-8 md:p-12 border border-white/8">
+        <div className="glass-dark bg-black rounded-2xl p-8 md:p-12 border border-white/10">
           <h2 className="font-display font-bold text-2xl text-white mb-2 text-center">
             How It Works
           </h2>
-          <p className="font-body text-sm text-gray-500 text-center mb-10">
+          <p className="font-body text-sm text-gray-400 text-center mb-10">
             Four simple steps from question to answer
           </p>
 
@@ -233,7 +233,7 @@ export default function LandingPage() {
                   </span>
                 </div>
                 <p className="font-display font-semibold text-white text-sm">{step.label}</p>
-                <p className="font-body text-xs text-gray-500 leading-relaxed">{step.sub}</p>
+                <p className="font-body text-xs text-gray-400 leading-relaxed">{step.sub}</p>
               </div>
             ))}
           </div>

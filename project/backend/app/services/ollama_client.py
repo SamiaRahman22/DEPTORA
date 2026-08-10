@@ -89,6 +89,7 @@ class OllamaClient:
                     "model": self.model,
                     "messages": messages,
                     "stream": False,
+                    "keep_alive": "30m",
                     "options": {
                         "temperature": 0.3,       # Lower = more factual
                         "top_p": 0.9,

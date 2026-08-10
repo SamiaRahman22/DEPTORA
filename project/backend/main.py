@@ -34,7 +34,23 @@ async def lifespan(app: FastAPI):
             db.close()
     except Exception as e:
         logger.warning(f"⚠️  RAG pipeline init warning: {e} — will retry on first use")
-    
+
+    # Pre-warm the embedding + reranker models so the first real chat request
+    # doesn't pay their cold-load cost (each can take 25-45s on CPU-only
+    # hardware) on top of Ollama's own generation time.
+    try:
+        from app.rag.embedder import embedding_service
+        embedding_service.embed_query("warmup")
+        logger.info("✅ Embedding model pre-warmed")
+    except Exception as e:
+        logger.warning(f"⚠️  Embedding model pre-warm failed: {e} — will load on first use")
+    try:
+        from app.rag.reranker import reranker
+        reranker._load_model()
+        logger.info("✅ Reranker model pre-warmed")
+    except Exception as e:
+        logger.warning(f"⚠️  Reranker model pre-warm failed: {e} — will load on first use")
+
     yield
     
     # Shutdown

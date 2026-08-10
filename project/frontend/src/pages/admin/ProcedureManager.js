@@ -34,7 +34,7 @@ const ProcedureCard = ({ proc, onEdit, onDelete }) => {
   const color = catColor[proc.category] || '#6366f1';
 
   return (
-    <div className="card hover:border-white/15 transition-all duration-200">
+    <div className="card hover:border-black/15 transition-all duration-200">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -42,7 +42,7 @@ const ProcedureCard = ({ proc, onEdit, onDelete }) => {
             <FileText size={15} style={{ color }} />
           </div>
           <div className="min-w-0">
-            <h3 className="font-display font-semibold text-white text-sm truncate">{proc.title}</h3>
+            <h3 className="font-display font-semibold text-gray-900 text-sm truncate">{proc.title}</h3>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="badge text-xs" style={{ background: `${color}12`, color, border: `1px solid ${color}25` }}>
                 {proc.category}
@@ -54,28 +54,28 @@ const ProcedureCard = ({ proc, onEdit, onDelete }) => {
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
           <button onClick={() => onEdit(proc)}
-            className="p-1.5 rounded hover:bg-white/8 text-gray-600 hover:text-blue-400 transition-colors">
+            className="p-1.5 rounded hover:bg-black/[.04] text-gray-600 hover:text-blue-400 transition-colors">
             <Pencil size={13} />
           </button>
           <button onClick={() => onDelete(proc.id)}
-            className="p-1.5 rounded hover:bg-white/8 text-gray-600 hover:text-rose-400 transition-colors">
+            className="p-1.5 rounded hover:bg-black/[.04] text-gray-600 hover:text-rose-600 transition-colors">
             <Trash2 size={13} />
           </button>
           <button onClick={() => setExpanded(!expanded)}
-            className="p-1.5 rounded hover:bg-white/8 text-gray-600 hover:text-gray-300 transition-colors">
+            className="p-1.5 rounded hover:bg-black/[.04] text-gray-600 hover:text-gray-900 transition-colors">
             {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
           </button>
         </div>
       </div>
       {expanded && (
-        <div className="border-t border-white/8 pt-3 space-y-2">
+        <div className="border-t border-black/8 pt-3 space-y-2">
           {proc.steps.map((step, i) => (
             <div key={i} className="flex items-start gap-3">
               <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
                 style={{ background: `${color}20`, border: `1px solid ${color}30` }}>
                 <span className="text-xs font-display font-bold" style={{ color }}>{i + 1}</span>
               </div>
-              <p className="text-gray-400 text-sm font-body leading-snug">{step}</p>
+              <p className="text-gray-600 text-sm font-body leading-snug">{step}</p>
             </div>
           ))}
         </div>
@@ -99,26 +99,26 @@ const ProcedureModal = ({ proc, onSave, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-lg bg-surface-2 border border-white/10 rounded-2xl overflow-hidden max-h-[90vh] flex flex-col"
+      <div className="w-full max-w-lg bg-surface-2 border border-black/10 rounded-2xl overflow-hidden max-h-[90vh] flex flex-col"
         style={{ animation: 'slideUp 0.25s ease-out' }}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/8 flex-shrink-0">
-          <h2 className="font-display font-semibold text-white text-base flex items-center gap-2">
-            <FileText size={16} className="text-primary-400" />
+        <div className="flex items-center justify-between px-5 py-4 border-b border-black/8 flex-shrink-0">
+          <h2 className="font-display font-semibold text-gray-900 text-base flex items-center gap-2">
+            <FileText size={16} className="text-primary-600" />
             {proc?.id ? 'Edit Procedure' : 'New Procedure'}
           </h2>
-          <button onClick={onClose} className="p-1 rounded hover:bg-white/8 text-gray-500 hover:text-gray-300 transition-colors">
+          <button onClick={onClose} className="p-1 rounded hover:bg-black/[.04] text-gray-500 hover:text-gray-900 transition-colors">
             <X size={16} />
           </button>
         </div>
         <div className="p-5 space-y-4 overflow-y-auto">
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
-              <label className="block text-xs font-display font-medium text-gray-400 mb-2">Title</label>
+              <label className="block text-xs font-display font-medium text-gray-600 mb-2">Title</label>
               <input type="text" value={form.title} onChange={e => update('title', e.target.value)}
                 placeholder="Procedure title" className="input-field text-sm" />
             </div>
             <div>
-              <label className="block text-xs font-display font-medium text-gray-400 mb-2">Category</label>
+              <label className="block text-xs font-display font-medium text-gray-600 mb-2">Category</label>
               <select value={form.category} onChange={e => update('category', e.target.value)}
                 className="input-field text-sm">
                 {CATEGORIES.filter(c => c !== 'All').map(c => <option key={c}>{c}</option>)}
@@ -127,8 +127,8 @@ const ProcedureModal = ({ proc, onSave, onClose }) => {
           </div>
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-display font-medium text-gray-400">Steps</label>
-              <button onClick={addStep} className="text-xs text-primary-400 hover:text-primary-300 font-display font-medium transition-colors flex items-center gap-1">
+              <label className="text-xs font-display font-medium text-gray-600">Steps</label>
+              <button onClick={addStep} className="text-xs text-primary-600 hover:text-primary-700 font-display font-medium transition-colors flex items-center gap-1">
                 <Plus size={11} /> Add step
               </button>
             </div>
@@ -136,12 +136,12 @@ const ProcedureModal = ({ proc, onSave, onClose }) => {
               {form.steps.map((step, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-primary-600/20 border border-primary-500/30 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs font-display font-bold text-primary-400">{i + 1}</span>
+                    <span className="text-xs font-display font-bold text-primary-600">{i + 1}</span>
                   </div>
                   <input type="text" value={step} onChange={e => updateStep(i, e.target.value)}
                     placeholder={`Step ${i + 1}...`} className="input-field text-sm flex-1 py-2" />
                   {form.steps.length > 1 && (
-                    <button onClick={() => removeStep(i)} className="text-gray-600 hover:text-rose-400 transition-colors p-1">
+                    <button onClick={() => removeStep(i)} className="text-gray-600 hover:text-rose-600 transition-colors p-1">
                       <X size={13} />
                     </button>
                   )}
@@ -150,7 +150,7 @@ const ProcedureModal = ({ proc, onSave, onClose }) => {
             </div>
           </div>
         </div>
-        <div className="flex gap-3 px-5 py-4 border-t border-white/8 justify-end flex-shrink-0">
+        <div className="flex gap-3 px-5 py-4 border-t border-black/8 justify-end flex-shrink-0">
           <button onClick={onClose} className="btn-ghost py-2 px-4 text-sm">Cancel</button>
           <button onClick={handleSave} className="btn-primary py-2 px-4 text-sm">
             <Save size={14} /> {proc?.id ? 'Save Changes' : 'Create Procedure'}
@@ -206,7 +206,7 @@ export default function ProcedureManager() {
         <div className="flex gap-1.5 flex-wrap">
           {CATEGORIES.map(c => (
             <button key={c} onClick={() => setCatFilter(c)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-display font-medium transition-colors ${catFilter === c ? 'bg-primary-600/20 text-primary-400 border border-primary-500/30' : 'text-gray-500 hover:text-gray-300 border border-transparent hover:bg-white/5'}`}>
+              className={`px-3 py-1.5 rounded-lg text-xs font-display font-medium transition-colors ${catFilter === c ? 'bg-primary-600/20 text-primary-600 border border-primary-500/30' : 'text-gray-500 hover:text-gray-900 border border-transparent hover:bg-black/[.03]'}`}>
               {c}
             </button>
           ))}

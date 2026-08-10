@@ -18,34 +18,34 @@ const FAQItem = ({ faq, onEdit, onDelete, onToggle }) => {
   const catColor = { Academic: '#6366f1', Administrative: '#10b981', Exams: '#f59e0b', Fees: '#f43f5e', Research: '#8b5cf6' };
 
   return (
-    <div className={`border rounded-xl overflow-hidden transition-all duration-200 ${faq.active ? 'border-white/10 bg-surface-2' : 'border-white/5 bg-surface-1 opacity-60'}`}>
+    <div className={`border rounded-xl overflow-hidden transition-all duration-200 ${faq.active ? 'border-black/10 bg-surface-2' : 'border-black/5 bg-surface-1 opacity-60'}`}>
       <div className="flex items-center gap-3 px-4 py-3.5 cursor-pointer" onClick={() => setExpanded(!expanded)}>
         <div className="flex-1 min-w-0 flex items-center gap-3">
           <span className="badge flex-shrink-0"
             style={{ background: `${catColor[faq.category] || '#6366f1'}15`, color: catColor[faq.category] || '#6366f1', border: `1px solid ${catColor[faq.category] || '#6366f1'}30` }}>
             {faq.category}
           </span>
-          <p className="text-white text-sm font-body font-medium truncate">{faq.question}</p>
+          <p className="text-gray-900 text-sm font-body font-medium truncate">{faq.question}</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <button onClick={e => { e.stopPropagation(); onToggle(faq.id); }}
-            className={`text-xs px-2 py-1 rounded font-display font-medium transition-colors ${faq.active ? 'text-emerald-400 bg-emerald-600/10' : 'text-gray-600 bg-white/5'}`}>
+            className={`text-xs px-2 py-1 rounded font-display font-medium transition-colors ${faq.active ? 'text-emerald-600 bg-emerald-600/10' : 'text-gray-600 bg-black/[.03]'}`}>
             {faq.active ? 'Active' : 'Hidden'}
           </button>
           <button onClick={e => { e.stopPropagation(); onEdit(faq); }}
-            className="p-1.5 rounded hover:bg-white/10 text-gray-500 hover:text-blue-400 transition-colors">
+            className="p-1.5 rounded hover:bg-black/5 text-gray-500 hover:text-blue-400 transition-colors">
             <Pencil size={13} />
           </button>
           <button onClick={e => { e.stopPropagation(); onDelete(faq.id); }}
-            className="p-1.5 rounded hover:bg-white/10 text-gray-500 hover:text-rose-400 transition-colors">
+            className="p-1.5 rounded hover:bg-black/5 text-gray-500 hover:text-rose-600 transition-colors">
             <Trash2 size={13} />
           </button>
           {expanded ? <ChevronUp size={14} className="text-gray-600" /> : <ChevronDown size={14} className="text-gray-600" />}
         </div>
       </div>
       {expanded && (
-        <div className="px-4 pb-4 border-t border-white/8 pt-3">
-          <p className="text-gray-400 text-sm font-body leading-relaxed">{faq.answer}</p>
+        <div className="px-4 pb-4 border-t border-black/8 pt-3">
+          <p className="text-gray-600 text-sm font-body leading-relaxed">{faq.answer}</p>
         </div>
       )}
     </div>
@@ -63,31 +63,31 @@ const FAQModal = ({ faq, onSave, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-lg bg-surface-2 border border-white/10 rounded-2xl overflow-hidden" style={{ animation: 'slideUp 0.25s ease-out' }}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
+      <div className="w-full max-w-lg bg-surface-2 border border-black/10 rounded-2xl overflow-hidden" style={{ animation: 'slideUp 0.25s ease-out' }}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-black/8">
           <div className="flex items-center gap-2">
-            <HelpCircle size={16} className="text-primary-400" />
-            <h2 className="font-display font-semibold text-white text-base">{faq?.id ? 'Edit FAQ' : 'Add New FAQ'}</h2>
+            <HelpCircle size={16} className="text-primary-600" />
+            <h2 className="font-display font-semibold text-gray-900 text-base">{faq?.id ? 'Edit FAQ' : 'Add New FAQ'}</h2>
           </div>
-          <button onClick={onClose} className="p-1 rounded hover:bg-white/8 text-gray-500 hover:text-gray-300 transition-colors">
+          <button onClick={onClose} className="p-1 rounded hover:bg-black/[.04] text-gray-500 hover:text-gray-900 transition-colors">
             <X size={16} />
           </button>
         </div>
         <div className="p-5 space-y-4">
           <div>
-            <label className="block text-xs font-display font-medium text-gray-400 mb-2">Category</label>
+            <label className="block text-xs font-display font-medium text-gray-600 mb-2">Category</label>
             <select value={form.category} onChange={e => update('category', e.target.value)}
               className="input-field text-sm">
               {CATEGORIES.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-display font-medium text-gray-400 mb-2">Question</label>
+            <label className="block text-xs font-display font-medium text-gray-600 mb-2">Question</label>
             <input type="text" value={form.question} onChange={e => update('question', e.target.value)}
               placeholder="Enter the FAQ question..." className="input-field text-sm" />
           </div>
           <div>
-            <label className="block text-xs font-display font-medium text-gray-400 mb-2">Answer</label>
+            <label className="block text-xs font-display font-medium text-gray-600 mb-2">Answer</label>
             <textarea value={form.answer} onChange={e => update('answer', e.target.value)}
               placeholder="Enter the detailed answer..." rows={4}
               className="input-field text-sm resize-none" />
@@ -95,10 +95,10 @@ const FAQModal = ({ faq, onSave, onClose }) => {
           <div className="flex items-center gap-2">
             <input type="checkbox" id="faq-active" checked={form.active}
               onChange={e => update('active', e.target.checked)} className="accent-indigo-500" />
-            <label htmlFor="faq-active" className="text-sm text-gray-400 font-body">Active (visible to students)</label>
+            <label htmlFor="faq-active" className="text-sm text-gray-600 font-body">Active (visible to students)</label>
           </div>
         </div>
-        <div className="flex gap-3 px-5 py-4 border-t border-white/8 justify-end">
+        <div className="flex gap-3 px-5 py-4 border-t border-black/8 justify-end">
           <button onClick={onClose} className="btn-ghost py-2 px-4 text-sm">Cancel</button>
           <button onClick={handleSave} className="btn-primary py-2 px-4 text-sm">
             <Save size={14} /> {faq?.id ? 'Save Changes' : 'Add FAQ'}
@@ -159,7 +159,7 @@ export default function FAQManager() {
         <div className="flex gap-1.5">
           {CATEGORIES.map(c => (
             <button key={c} onClick={() => setCatFilter(c)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-display font-medium transition-colors ${catFilter === c ? 'bg-primary-600/20 text-primary-400 border border-primary-500/30' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5 border border-transparent'}`}>
+              className={`px-3 py-1.5 rounded-lg text-xs font-display font-medium transition-colors ${catFilter === c ? 'bg-primary-600/20 text-primary-600 border border-primary-500/30' : 'text-gray-500 hover:text-gray-900 hover:bg-black/[.03] border border-transparent'}`}>
               {c}
             </button>
           ))}

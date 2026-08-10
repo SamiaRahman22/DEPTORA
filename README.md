@@ -1,4 +1,8 @@
-# DeptAI — AI-Powered Administrative Assistant
+<p align="center">
+  <img src="./project/frontend/src/assets/logo%20deptora.png" alt="DEPTORA logo" width="140"/>
+</p>
+
+# DEPTORA — AI-Powered Administrative Assistant
 
 A full-stack, domain-restricted AI assistant for academic departments using RAG (Retrieval-Augmented Generation) + local LLM (Ollama). No OpenAI, no paid APIs, fully private.
 

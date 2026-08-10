@@ -118,7 +118,7 @@ export default function DocumentUpload() {
           { label: 'Total Chunks', value: stats.total_chunks?.toLocaleString() ?? '—', color: '#8b5cf6' },
         ].map(({ label, value, color }) => (
           <div key={label} className="card text-center">
-            <p className="font-display font-bold text-xl text-white" style={{ color }}>{value}</p>
+            <p className="font-display font-bold text-xl text-gray-900" style={{ color }}>{value}</p>
             <p className="text-gray-500 text-xs font-body mt-0.5">{label}</p>
           </div>
         ))}
@@ -131,29 +131,29 @@ export default function DocumentUpload() {
         onDrop={handleDrop}
         onClick={() => fileRef.current?.click()}
         className={`relative border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all duration-200 mb-5
-          ${dragging ? 'border-primary-500 bg-primary-600/10' : 'border-white/15 hover:border-white/30 hover:bg-white/3'}`}>
+          ${dragging ? 'border-primary-500 bg-primary-600/10' : 'border-black/10 hover:border-black/30 hover:bg-black/[.03]'}`}>
         <input ref={fileRef} type="file" className="hidden" multiple accept=".pdf,.docx,.txt"
           onChange={e => handleFiles(e.target.files)} />
         <div className="flex flex-col items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-primary-600/15 border border-primary-500/20 flex items-center justify-center">
-            <Upload size={22} className={dragging ? 'text-primary-400' : 'text-gray-500'} />
+            <Upload size={22} className={dragging ? 'text-primary-600' : 'text-gray-500'} />
           </div>
           <div>
-            <p className="font-display font-semibold text-white text-sm mb-1">
+            <p className="font-display font-semibold text-gray-900 text-sm mb-1">
               {dragging ? 'Drop to upload' : 'Drag & drop files here'}
             </p>
             <p className="text-gray-600 text-xs font-body">PDF, DOCX, TXT · Max 50MB per file</p>
           </div>
-          <span className="badge bg-primary-600/10 text-primary-400 border border-primary-500/20 text-xs">Click to browse</span>
+          <span className="badge bg-primary-600/10 text-primary-600 border border-primary-500/20 text-xs">Click to browse</span>
         </div>
       </div>
 
       {/* Upload progress */}
       {Object.entries(uploadProgress).map(([name, pct]) => (
-        <div key={name} className="mb-3 px-4 py-3 rounded-lg bg-surface-2 border border-white/8">
+        <div key={name} className="mb-3 px-4 py-3 rounded-lg bg-surface-2 border border-black/8">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-body text-gray-400 truncate">{name}</span>
-            <span className="text-xs font-mono text-primary-400">{pct}%</span>
+            <span className="text-xs font-body text-gray-600 truncate">{name}</span>
+            <span className="text-xs font-mono text-primary-600">{pct}%</span>
           </div>
           <div className="h-1 bg-surface-3 rounded-full overflow-hidden">
             <div className="h-full bg-primary-500 rounded-full transition-all duration-300" style={{ width: `${pct}%` }} />
@@ -162,7 +162,7 @@ export default function DocumentUpload() {
       ))}
 
       {/* Pipeline info */}
-      <div className="flex items-center gap-2 p-3 rounded-lg bg-surface-2 border border-white/8 text-xs font-mono text-gray-600 mb-5 overflow-x-auto">
+      <div className="flex items-center gap-2 p-3 rounded-lg bg-surface-2 border border-black/8 text-xs font-mono text-gray-600 mb-5 overflow-x-auto">
         <span className="text-gray-500">Pipeline:</span>
         {['Upload', '→', 'Extract Text', '→', 'Chunk (512 tokens)', '→', 'SentenceTransformers', '→', 'FAISS Index'].map((s, i) => (
           <span key={i} className={s === '→' ? 'text-gray-700' : 'text-gray-500 whitespace-nowrap'}>{s}</span>
@@ -171,9 +171,9 @@ export default function DocumentUpload() {
 
       {/* Documents table */}
       <div className="card p-0 overflow-hidden">
-        <div className="px-5 py-4 border-b border-white/8 flex items-center justify-between">
-          <h2 className="font-display font-semibold text-white text-sm">Knowledge Base Documents</h2>
-          <button onClick={loadDocs} className="p-1.5 rounded hover:bg-white/8 text-gray-600 hover:text-gray-300 transition-colors">
+        <div className="px-5 py-4 border-b border-black/8 flex items-center justify-between">
+          <h2 className="font-display font-semibold text-gray-900 text-sm">Knowledge Base Documents</h2>
+          <button onClick={loadDocs} className="p-1.5 rounded hover:bg-black/[.04] text-gray-600 hover:text-gray-900 transition-colors">
             <RefreshCw size={13} className={uploading ? 'animate-spin' : ''} />
           </button>
         </div>
@@ -197,14 +197,14 @@ export default function DocumentUpload() {
                     <div className="flex items-center gap-3">
                       <FileIcon type={doc.file_type} />
                       <div>
-                        <p className="text-gray-200 text-sm font-body">{doc.original_filename}</p>
+                        <p className="text-gray-800 text-sm font-body">{doc.original_filename}</p>
                         {doc.page_count && <p className="text-gray-600 text-xs font-mono">{doc.page_count} pages</p>}
-                        {doc.error_message && <p className="text-rose-400 text-xs font-mono">{doc.error_message.slice(0, 50)}</p>}
+                        {doc.error_message && <p className="text-rose-600 text-xs font-mono">{doc.error_message.slice(0, 50)}</p>}
                       </div>
                     </div>
                   </td>
                   <td><StatusBadge status={doc.status} /></td>
-                  <td><span className="font-mono text-sm text-gray-400">{doc.chunk_count ?? '—'}</span></td>
+                  <td><span className="font-mono text-sm text-gray-600">{doc.chunk_count ?? '—'}</span></td>
                   <td><span className="text-gray-500 text-xs font-mono">{fmt(doc.file_size)}</span></td>
                   <td><span className="text-gray-600 text-xs font-mono">
                     {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString() : '—'}
@@ -212,11 +212,11 @@ export default function DocumentUpload() {
                   <td>
                     <div className="flex items-center gap-1">
                       <button onClick={() => handleReindex(doc.id)}
-                        className="p-1.5 rounded hover:bg-white/8 text-gray-600 hover:text-blue-400 transition-colors" title="Re-index">
+                        className="p-1.5 rounded hover:bg-black/[.04] text-gray-600 hover:text-blue-400 transition-colors" title="Re-index">
                         <RefreshCw size={13} />
                       </button>
                       <button onClick={() => handleDelete(doc.id, doc.original_filename)}
-                        className="p-1.5 rounded hover:bg-white/8 text-gray-600 hover:text-rose-400 transition-colors" title="Delete">
+                        className="p-1.5 rounded hover:bg-black/[.04] text-gray-600 hover:text-rose-600 transition-colors" title="Delete">
                         <Trash2 size={13} />
                       </button>
                     </div>

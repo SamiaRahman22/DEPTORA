@@ -75,7 +75,7 @@ export default function QueryLogs() {
               <Icon size={16} style={{ color }} />
             </div>
             <div>
-              <p className="font-display font-bold text-lg text-white">{value}</p>
+              <p className="font-display font-bold text-lg text-gray-900">{value}</p>
               <p className="text-gray-600 text-xs font-body">{label}</p>
             </div>
           </div>
@@ -93,13 +93,13 @@ export default function QueryLogs() {
           {[['all','All'],['resolved','Resolved'],['ood','Out-of-Domain'],['partial','Partial']].map(([val,label]) => (
             <button key={val} onClick={() => { setFilter(val); setPage(1); }}
               className={`px-3 py-1.5 rounded-lg text-xs font-display font-medium transition-colors
-                ${filter === val ? 'bg-primary-600/20 text-primary-400 border border-primary-500/30'
-                  : 'text-gray-500 hover:text-gray-300 border border-transparent hover:bg-white/5'}`}>
+                ${filter === val ? 'bg-primary-600/20 text-primary-600 border border-primary-500/30'
+                  : 'text-gray-500 hover:text-gray-900 border border-transparent hover:bg-black/[.03]'}`}>
               {label}
             </button>
           ))}
         </div>
-        <button onClick={loadLogs} className="p-2 rounded hover:bg-white/8 text-gray-600 hover:text-gray-300 transition-colors">
+        <button onClick={loadLogs} className="p-2 rounded hover:bg-black/[.04] text-gray-600 hover:text-gray-900 transition-colors">
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
         </button>
       </div>
@@ -125,7 +125,7 @@ export default function QueryLogs() {
               <React.Fragment key={log.id}>
                 <tr className="cursor-pointer" onClick={() => setSelected(selected?.id === log.id ? null : log)}>
                   <td className="max-w-xs">
-                    <p className="text-gray-200 text-xs font-body truncate max-w-[200px]">{log.query}</p>
+                    <p className="text-gray-800 text-xs font-body truncate max-w-[200px]">{log.query}</p>
                   </td>
                   <td><span className="text-gray-500 text-xs font-mono">{log.user_id ?? 'anon'}</span></td>
                   <td><StatusBadge status={log.is_in_domain ? log.status : 'rejected'} /></td>
@@ -138,8 +138,8 @@ export default function QueryLogs() {
                   <td>
                     <span className={`font-mono text-xs ${
                       !log.response_time_ms ? 'text-gray-600' :
-                      log.response_time_ms < 1000 ? 'text-emerald-400' :
-                      log.response_time_ms < 2000 ? 'text-amber-400' : 'text-rose-400'}`}>
+                      log.response_time_ms < 1000 ? 'text-emerald-600' :
+                      log.response_time_ms < 2000 ? 'text-amber-600' : 'text-rose-600'}`}>
                       {log.response_time_ms ? `${log.response_time_ms}ms` : '—'}
                     </span>
                   </td>
@@ -151,13 +151,13 @@ export default function QueryLogs() {
                   <tr>
                     <td colSpan={7} className="px-4 pb-3 bg-surface-1/50">
                       <div className="text-xs font-body space-y-2 pt-2">
-                        <div><span className="text-gray-500">Query: </span><span className="text-gray-300">{log.query}</span></div>
-                        {log.response && <div><span className="text-gray-500">Response: </span><span className="text-gray-400">{log.response}</span></div>}
-                        {log.sources_used?.length > 0 && <div><span className="text-gray-500">Sources: </span><span className="text-gray-400 font-mono">{log.sources_used.join(', ')}</span></div>}
-                        <div><span className="text-gray-500">Domain score: </span><span className="text-gray-400 font-mono">{log.domain_score?.toFixed(3) ?? '—'}</span></div>
-                        <div><span className="text-gray-500">Validation confidence: </span><span className="text-gray-400 font-mono">{log.confidence_score?.toFixed(3) ?? '—'}</span></div>
+                        <div><span className="text-gray-500">Query: </span><span className="text-gray-700">{log.query}</span></div>
+                        {log.response && <div><span className="text-gray-500">Response: </span><span className="text-gray-600">{log.response}</span></div>}
+                        {log.sources_used?.length > 0 && <div><span className="text-gray-500">Sources: </span><span className="text-gray-600 font-mono">{log.sources_used.join(', ')}</span></div>}
+                        <div><span className="text-gray-500">Domain score: </span><span className="text-gray-600 font-mono">{log.domain_score?.toFixed(3) ?? '—'}</span></div>
+                        <div><span className="text-gray-500">Validation confidence: </span><span className="text-gray-600 font-mono">{log.confidence_score?.toFixed(3) ?? '—'}</span></div>
                         {log.is_valid === false && (
-                          <div className="text-rose-400">Flagged by response validator — {log.unverified_claims_count ?? '?'} unverified claim(s)</div>
+                          <div className="text-rose-600">Flagged by response validator — {log.unverified_claims_count ?? '?'} unverified claim(s)</div>
                         )}
                         {log.status === 'resolved' && (
                           <div className="flex items-center gap-2 pt-1" onClick={e => e.stopPropagation()}>
@@ -166,10 +166,10 @@ export default function QueryLogs() {
                               <button key={r} onClick={() => rateLog(log.id, r)}
                                 className={`px-2 py-1 rounded text-xs font-display font-medium transition-colors border
                                   ${log.admin_rating === r
-                                    ? r === 'correct' ? 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30'
-                                    : r === 'partial' ? 'bg-amber-600/20 text-amber-400 border-amber-500/30'
-                                    : 'bg-rose-600/20 text-rose-400 border-rose-500/30'
-                                    : 'text-gray-500 border-transparent hover:bg-white/5'}`}>
+                                    ? r === 'correct' ? 'bg-emerald-600/20 text-emerald-600 border-emerald-500/30'
+                                    : r === 'partial' ? 'bg-amber-600/20 text-amber-600 border-amber-500/30'
+                                    : 'bg-rose-600/20 text-rose-600 border-rose-500/30'
+                                    : 'text-gray-500 border-transparent hover:bg-black/[.03]'}`}>
                                 {r}
                               </button>
                             ))}
@@ -193,11 +193,11 @@ export default function QueryLogs() {
           </p>
           <div className="flex gap-2">
             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-              className="p-1.5 rounded hover:bg-white/8 text-gray-600 hover:text-gray-300 disabled:opacity-30 transition-colors">
+              className="p-1.5 rounded hover:bg-black/[.04] text-gray-600 hover:text-gray-900 disabled:opacity-30 transition-colors">
               <ChevronLeft size={14} />
             </button>
             <button onClick={() => setPage(p => Math.min(data.pages, p + 1))} disabled={page === data.pages}
-              className="p-1.5 rounded hover:bg-white/8 text-gray-600 hover:text-gray-300 disabled:opacity-30 transition-colors">
+              className="p-1.5 rounded hover:bg-black/[.04] text-gray-600 hover:text-gray-900 disabled:opacity-30 transition-colors">
               <ChevronRight size={14} />
             </button>
           </div>

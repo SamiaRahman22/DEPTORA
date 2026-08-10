@@ -8,20 +8,20 @@ import {
 } from 'lucide-react';
 
 const StatCard = ({ icon: Icon, label, value, sub, color, trend }) => (
-  <div className="card hover:border-white/15 transition-colors">
+  <div className="card hover:border-black/15 transition-colors">
     <div className="flex items-start justify-between mb-4">
       <div className="w-9 h-9 rounded-lg flex items-center justify-center"
         style={{ background: `${color}15`, border: `1px solid ${color}25` }}>
         <Icon size={17} style={{ color }} />
       </div>
       {trend !== undefined && (
-        <span className={`badge ${trend >= 0 ? 'bg-emerald-600/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-600/10 text-rose-400 border-rose-500/20'}`}>
+        <span className={`badge ${trend >= 0 ? 'bg-emerald-600/10 text-emerald-600 border-emerald-500/20' : 'bg-rose-600/10 text-rose-600 border-rose-500/20'}`}>
           {trend >= 0 ? '↑' : '↓'} {Math.abs(trend)}%
         </span>
       )}
     </div>
-    <p className="font-display font-bold text-2xl text-white mb-0.5">{value ?? '—'}</p>
-    <p className="font-body text-sm text-gray-400">{label}</p>
+    <p className="font-display font-bold text-2xl text-gray-900 mb-0.5">{value ?? '—'}</p>
+    <p className="font-body text-sm text-gray-600">{label}</p>
     {sub && <p className="text-xs text-gray-600 font-body mt-1">{sub}</p>}
   </div>
 );
@@ -70,9 +70,9 @@ export default function AdminDashboard() {
   return (
     <AdminLayout title="Dashboard" subtitle="System overview">
       {error && (
-        <div className="mb-5 px-4 py-3 rounded-lg bg-rose-600/10 border border-rose-500/30 text-rose-400 text-sm font-body flex items-center justify-between">
+        <div className="mb-5 px-4 py-3 rounded-lg bg-rose-600/10 border border-rose-500/30 text-rose-600 text-sm font-body flex items-center justify-between">
           <span>{error}</span>
-          <button onClick={loadDashboard} className="flex items-center gap-1 text-xs hover:text-rose-300 transition-colors">
+          <button onClick={loadDashboard} className="flex items-center gap-1 text-xs hover:text-rose-700 transition-colors">
             <RefreshCw size={12} /> Retry
           </button>
         </div>
@@ -88,31 +88,31 @@ export default function AdminDashboard() {
       ) : (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            <StatCard icon={MessageSquare} label="Total Queries (30d)" value={stats?.total_queries_30d?.toLocaleString()} color="#6366f1" />
+            <StatCard icon={MessageSquare} label="Total Queries (30d)" value={stats?.total_queries_30d?.toLocaleString()} color="#4f4dd6" />
             <StatCard icon={CheckCircle} label="Resolved Queries" value={stats?.resolved?.toLocaleString()}
               sub={`${stats?.resolution_rate ?? 0}% resolution rate`} color="#10b981" />
-            <StatCard icon={AlertTriangle} label="Out-of-Domain Rejected" value={stats?.rejected_ood?.toLocaleString()} color="#f59e0b" />
-            <StatCard icon={Users} label="Active Students" value={stats?.active_students?.toLocaleString()} color="#8b5cf6" />
-            <StatCard icon={HelpCircle} label="Active FAQs" value={stats?.faq_count?.toLocaleString()} color="#06b6d4" />
-            <StatCard icon={FileText} label="Indexed Documents" value={stats?.document_count?.toLocaleString()} color="#f43f5e" />
+            <StatCard icon={AlertTriangle} label="Out-of-Domain Rejected" value={stats?.rejected_ood?.toLocaleString()} color="#f5b400" />
+            <StatCard icon={Users} label="Active Students" value={stats?.active_students?.toLocaleString()} color="#7c6ff0" />
+            <StatCard icon={HelpCircle} label="Active FAQs" value={stats?.faq_count?.toLocaleString()} color="#0891b2" />
+            <StatCard icon={FileText} label="Indexed Documents" value={stats?.document_count?.toLocaleString()} color="#ec4899" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {/* Recent activity */}
             <div className="card">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display font-semibold text-white text-sm">Recent Activity</h2>
+                <h2 className="font-display font-semibold text-gray-900 text-sm">Recent Activity</h2>
                 <Clock size={14} className="text-gray-600" />
               </div>
               {data?.recent_activity?.length > 0 ? (
                 <div className="space-y-0">
                   {data.recent_activity.slice(0, 6).map((log, i) => (
-                    <div key={i} className="flex items-start gap-3 py-2.5 border-b border-white/5 last:border-0">
+                    <div key={i} className="flex items-start gap-3 py-2.5 border-b border-black/5 last:border-0">
                       <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${
-                        log.status === 'resolved' ? 'bg-emerald-400' :
-                        log.status === 'rejected' ? 'bg-rose-400' : 'bg-amber-400'}`} />
+                        log.status === 'resolved' ? 'bg-emerald-500' :
+                        log.status === 'rejected' ? 'bg-rose-500' : 'bg-amber-500'}`} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-gray-300 text-xs font-body truncate">{log.query}</p>
+                        <p className="text-gray-700 text-xs font-body truncate">{log.query}</p>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-gray-600 text-xs font-mono">{log.status}</span>
                           {log.response_time_ms && (
@@ -135,7 +135,7 @@ export default function AdminDashboard() {
               {/* Real system performance — measured, not simulated */}
               <div className="card">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-display font-semibold text-white text-sm">System Performance</h2>
+                  <h2 className="font-display font-semibold text-gray-900 text-sm">System Performance</h2>
                   {perf?.offline_evaluation_generated_at && (
                     <span className="text-xs text-gray-600 font-mono">
                       eval: {new Date(perf.offline_evaluation_generated_at).toLocaleDateString()}
@@ -147,7 +147,7 @@ export default function AdminDashboard() {
                   <RAGBar
                     label="Domain Restriction Accuracy (labeled test set)"
                     value={`${perf.offline_evaluation.domain_restriction.accuracy}%`}
-                    color="#8b5cf6"
+                    color="#7c6ff0"
                   />
                 ) : (
                   <p className="text-xs text-gray-600 font-body mb-3">
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
                   <RAGBar
                     label={`Cache Hit Rate (${live.cache.total} lookups)`}
                     value={`${live.cache.hit_rate}%`}
-                    color="#f59e0b"
+                    color="#f5b400"
                   />
                 )}
 
@@ -175,12 +175,12 @@ export default function AdminDashboard() {
                   <RAGBar
                     label="Avg Response Validation Confidence"
                     value={`${Math.round(live.avg_confidence_score * 100)}%`}
-                    color="#6366f1"
+                    color="#4f4dd6"
                   />
                 )}
 
                 <div className="mt-3 flex items-center gap-2 text-xs text-gray-600 font-mono">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   {live?.response_time?.avg_ms != null
                     ? `${live.response_time.avg_ms}ms avg response (p95: ${live.response_time.p95_ms}ms, n=${live.response_time.sample_size})`
                     : `${stats?.avg_response_ms ?? '—'}ms avg response`}
@@ -194,18 +194,18 @@ export default function AdminDashboard() {
 
               {/* Quick actions */}
               <div className="card">
-                <h2 className="font-display font-semibold text-white text-sm mb-3">Quick Actions</h2>
+                <h2 className="font-display font-semibold text-gray-900 text-sm mb-3">Quick Actions</h2>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { label: 'Add FAQ', icon: HelpCircle, to: '/admin/faqs', color: '#6366f1' },
+                    { label: 'Add FAQ', icon: HelpCircle, to: '/admin/faqs', color: '#4f4dd6' },
                     { label: 'Upload Doc', icon: Upload, to: '/admin/documents', color: '#10b981' },
-                    { label: 'View Logs', icon: TrendingUp, to: '/admin/logs', color: '#f59e0b' },
-                    { label: 'Procedures', icon: FileText, to: '/admin/procedures', color: '#8b5cf6' },
+                    { label: 'View Logs', icon: TrendingUp, to: '/admin/logs', color: '#f5b400' },
+                    { label: 'Procedures', icon: FileText, to: '/admin/procedures', color: '#7c6ff0' },
                   ].map(({ label, icon: Icon, to, color }) => (
                     <a key={label} href={to}
-                      className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-white/3 hover:bg-white/6 border border-white/8 hover:border-white/15 transition-all cursor-pointer">
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-black/[.03] hover:bg-black/[.04] border border-black/8 hover:border-black/15 transition-all cursor-pointer">
                       <Icon size={13} style={{ color }} />
-                      <span className="text-gray-300 text-xs font-body">{label}</span>
+                      <span className="text-gray-700 text-xs font-body">{label}</span>
                     </a>
                   ))}
                 </div>

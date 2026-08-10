@@ -34,17 +34,17 @@ export default function StudentLogin() {
   return (
     <div className="min-h-screen bg-surface-0 flex">
       {/* Left panel */}
-      <div className="hidden lg:flex flex-col w-[420px] bg-surface-1 border-r border-white/8 p-10 relative overflow-hidden">
+      <div className="hidden lg:flex flex-col w-[420px] bg-surface-1 border-r border-black/8 p-10 relative overflow-hidden">
         <div className="orb top-[-80px] left-[-80px] w-[300px] h-[300px] rounded-full"
-          style={{ background: '#6366f1', filter: 'blur(80px)', opacity: 0.15 }} />
+          style={{ background: '#4f4dd6', filter: 'blur(80px)', opacity: 0.15 }} />
         <div className="orb bottom-[-50px] right-[-50px] w-[200px] h-[200px] rounded-full"
-          style={{ background: '#8b5cf6', filter: 'blur(60px)', opacity: 0.15 }} />
+          style={{ background: '#7c6ff0', filter: 'blur(60px)', opacity: 0.15 }} />
 
         <Link to="/" className="flex items-center gap-2 relative z-10">
           <div className="w-16 h-16 flex items-center justify-center">
               <Bot className="w-full h-full object-contain" />
             </div>
-          <span className="font-display font-bold text-white text-base">DEPTORA</span>
+          <span className="font-display font-bold text-gray-900 text-base">DEPTORA</span>
         </Link>
 
         <div className="flex-1 flex flex-col justify-center relative z-10">
@@ -58,7 +58,7 @@ export default function StudentLogin() {
               </div>
             </div>
           </div>
-          <h2 className="font-display font-bold text-2xl text-white mb-3">Your department assistant awaits</h2>
+          <h2 className="font-display font-bold text-2xl text-gray-900 mb-3">Your department assistant awaits</h2>
           <p className="font-body text-gray-500 text-sm leading-relaxed">
             Sign in to access AI-powered answers for your academic journey. All data is processed locally and securely.
           </p>
@@ -66,7 +66,7 @@ export default function StudentLogin() {
             {['Instant answers to FAQs', 'Document-grounded responses', 'Available 24/7'].map(f => (
               <div key={f} className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-primary-500" />
-                <span className="text-gray-400 text-sm font-body">{f}</span>
+                <span className="text-gray-600 text-sm font-body">{f}</span>
               </div>
             ))}
           </div>
@@ -85,23 +85,23 @@ export default function StudentLogin() {
             <div className="w-16 h-16 flex items-center justify-center">
               <Bot className="w-full h-full object-contain" />
             </div>
-            <span className="font-display font-bold text-white text-base">DEPTORA</span>
+            <span className="font-display font-bold text-gray-900 text-base">DEPTORA</span>
           </Link>
 
           <div className="mb-8">
-            <h1 className="font-display font-bold text-2xl text-white mb-1.5">Student Login</h1>
+            <h1 className="font-display font-bold text-2xl text-gray-900 mb-1.5">Student Login</h1>
             <p className="font-body text-gray-500 text-sm">Sign in with your department credentials</p>
           </div>
 
           {/* Demo hint */}
           <button onClick={fillDemo}
             className="w-full mb-5 px-4 py-2.5 rounded-lg bg-primary-600/10 border border-primary-500/20 hover:border-primary-500/40 transition-colors text-left">
-            <p className="text-primary-400 text-xs font-display font-semibold mb-0.5">Demo Credentials</p>
+            <p className="text-primary-600 text-xs font-display font-semibold mb-0.5">Demo Credentials</p>
             <p className="text-gray-500 text-xs font-mono">student@test.edu / student123</p>
           </button>
 
           {error && (
-            <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-rose-600/10 border border-rose-500/30 text-rose-400 text-sm font-body mb-5">
+            <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-rose-600/10 border border-rose-500/30 text-rose-600 text-sm font-body mb-5">
               <AlertCircle size={14} />
               {error}
             </div>
@@ -109,7 +109,7 @@ export default function StudentLogin() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-display font-medium text-gray-400 mb-2">Email Address</label>
+              <label className="block text-xs font-display font-medium text-gray-600 mb-2">Email Address</label>
               <div className="relative">
                 <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)}
@@ -119,14 +119,14 @@ export default function StudentLogin() {
             </div>
 
             <div>
-              <label className="block text-xs font-display font-medium text-gray-400 mb-2">Password</label>
+              <label className="block text-xs font-display font-medium text-gray-600 mb-2">Password</label>
               <div className="relative">
                 <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input type={showPass ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••" required
                   className="input-field pl-10 pr-10" />
                 <button type="button" onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors">
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 transition-colors">
                   {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
@@ -135,7 +135,7 @@ export default function StudentLogin() {
             <button type="submit" disabled={loading}
               className="btn-primary w-full py-3 justify-center mt-2 disabled:opacity-60 disabled:cursor-not-allowed">
               {loading ? (
-                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Signing in...</>
+                <><div className="w-4 h-4 border-2 border-black/20 border-t-white rounded-full animate-spin" /> Signing in...</>
               ) : (
                 <> Sign In <ArrowRight size={15} /></>
               )}
@@ -144,13 +144,13 @@ export default function StudentLogin() {
 
           <p className="text-center text-sm text-gray-500 font-body mt-6">
             Don't have an account?{' '}
-            <Link to="/signup" className="text-primary-400 hover:text-primary-300 font-medium transition-colors">
+            <Link to="/signup" className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
               Create one
             </Link>
           </p>
 
-          <div className="mt-4 pt-4 border-t border-white/8 text-center">
-            <Link to="/admin/login" className="text-xs text-gray-600 hover:text-gray-400 font-body transition-colors">
+          <div className="mt-4 pt-4 border-t border-black/8 text-center">
+            <Link to="/admin/login" className="text-xs text-gray-600 hover:text-gray-700 font-body transition-colors">
               Admin login →
             </Link>
           </div>

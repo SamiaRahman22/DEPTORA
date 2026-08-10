@@ -70,13 +70,6 @@ async def chat_message(
     if cached_response:
         response_ms = int((time.time() - start_time) * 1000)
         cached_confidence = cached_response.get("confidence_score", 0.8)
-        try:
-            faq_just_added = faq_promotion.check_and_promote(
-                db, query, cached_response["response"], cached_confidence, True
-            )
-        except Exception as e:
-            logger.error(f"FAQ auto-promotion errored (non-fatal): {e}")
-            faq_just_added = False
         background_tasks.add_task(
             _log_query, db, current_user.id, query, cached_response["response"],
             True, cached_confidence, "resolved_cached",
@@ -84,6 +77,15 @@ async def chat_message(
             confidence_score=cached_confidence,
             is_valid=cached_response.get("is_valid"),
             unverified_claims_count=cached_response.get("unverified_claims_count"),
+        )
+        # Cache hits stay on the background path — a cache hit should be
+        # near-instant, and a cold embedding-model load here would defeat
+        # that (the synchronous, instant check on the main generation path
+        # below already covers the common "5th ask" case, since that path
+        # takes 1-2 minutes anyway and an extra second is negligible there).
+        background_tasks.add_task(
+            faq_promotion.check_and_promote,
+            db, query, cached_response["response"], cached_confidence, True
         )
         return ChatResponse(
             response=cached_response["response"],
@@ -93,7 +95,7 @@ async def chat_message(
             response_time_ms=response_ms,
             session_id=session_id,
             confidence_score=cached_confidence,
-            new_faq_added=faq_just_added,
+            new_faq_added=False,
         )
 
     # ── STEP 1: DOMAIN CHECK (Multi-layer with confidence) ──
