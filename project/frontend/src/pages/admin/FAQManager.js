@@ -9,6 +9,7 @@ const INITIAL_FAQS = [
   { id: 3, category: 'Exams', question: 'What is the attendance policy for exams?', answer: 'Minimum 75% attendance is required. Below 75% results in automatic NC grade. Medical certificates must be submitted within 3 working days.', active: true },
   { id: 4, category: 'Fees', question: 'When are tuition fees due?', answer: 'Fees are due within the first 2 weeks of each semester. Late payment incurs a 2% monthly surcharge. Scholarship students must confirm renewal annually.', active: false },
   { id: 5, category: 'Academic', question: 'Can I take courses from other departments?', answer: 'Yes, with advisor approval. Elective slots allow up to 2 courses from other departments per semester, subject to prerequisites.', active: true },
+  { id: 6, category: 'Faculty', question: 'Who is the chairperson of CSE Department?', answer: 'Dr. Maheen Islam is the current chairperson of CSE department.', active: true },
 ];
 
 const CATEGORIES = ['All', 'Academic', 'Administrative', 'Exams', 'Fees', 'Research', 'Other'];

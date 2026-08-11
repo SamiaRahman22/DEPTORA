@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./project/frontend/src/assets/logo%20deptora.png" alt="DEPTORA logo" width="140"/>
+  <img src="./project/frontend/src/assets/logo%20deptora.png" alt="DEPTORA logo" width="180"/>
 </p>
 
 # DEPTORA — AI-Powered Administrative Assistant

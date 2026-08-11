@@ -10,6 +10,8 @@ from loguru import logger
 from app.core.config import settings
 
 
+import re
+
 SYSTEM_PROMPT = """You are an AI administrative assistant for the {department} department.
 
 YOUR ROLE:
@@ -36,6 +38,19 @@ TONE:
 Professional, helpful, honest, and accurate. Admit limitations rather than guess.
 """
 
+_META_NOTE_PATTERN = re.compile(
+    r"\n\n(?:⚠️ \*\*Note:\*\* This answer has limited source backing\.|"
+    r"\*Note: AI synthesis unavailable\.).*",
+    re.DOTALL,
+)
+
+
+def _strip_meta_notes(text: str) -> str:
+    """Remove backend-injected meta-notes before an assistant turn is ever
+    fed back into the model as conversation history."""
+    return _META_NOTE_PATTERN.sub("", text).strip()
+
+
 def _build_prompt(query: str, context: str, conversation_history: List[Dict], department: str) -> List[Dict]:
     """Build the messages array for Ollama chat API."""
     messages = [
@@ -48,7 +63,10 @@ def _build_prompt(query: str, context: str, conversation_history: List[Dict], de
     # Add recent conversation history (last 6 turns)
     for turn in conversation_history[-6:]:
         if turn.get("role") in ("user", "assistant"):
-            messages.append({"role": turn["role"], "content": turn["content"]})
+            content = turn["content"]
+            if turn["role"] == "assistant":
+                content = _strip_meta_notes(content)
+            messages.append({"role": turn["role"], "content": content})
 
     # Add context as a system message before the user query  (UPDATED))
     if context:
@@ -89,7 +107,6 @@ class OllamaClient:
                     "model": self.model,
                     "messages": messages,
                     "stream": False,
-                    "keep_alive": "30m",
                     "options": {
                         "temperature": 0.3,       # Lower = more factual
                         "top_p": 0.9,

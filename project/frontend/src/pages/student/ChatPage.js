@@ -11,11 +11,11 @@ import toast from 'react-hot-toast';
 import Bot from '../../components/Bot';
 
 const SAMPLE_QUESTIONS = [
-  'What are the thesis submission deadlines?',
-  'How do I apply for a course waiver?',
+  'Can I take courses from other departments?',
+  'When are tuition fees due?',
   'What is the attendance policy?',
-  'Who is the department head?',
-  'How to request official transcripts?',
+  'Who is the chairperson of CSE department?',
+  'How do I get my official transcript?',
   'What is the minimum CGPA to graduate?',
 ];
 
@@ -116,6 +116,19 @@ export default function ChatPage() {
   const [liveFaqs, setLiveFaqs] = useState([]);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Backend appends meta-notes (low-confidence warning, fallback notice) onto
+  // the DISPLAYED response text. Those must never be sent back to the LLM as
+  // conversation history — a small model will echo repeated boilerplate it
+  // sees in its own prior turns, which is exactly why the warning note was
+  // showing up multiple times in later responses within the same session.
+  const stripMetaNotes = (text) => {
+    if (!text) return text;
+    return text
+      .split(/\n\n⚠️ \*\*Note:\*\* This answer has limited source backing\./)[0]
+      .split(/\n\n\*Note: AI synthesis unavailable\./)[0]
+      .trim();
+  };
 
   // Build conversation history for context
   const conversationHistory = messages
